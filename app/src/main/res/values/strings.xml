@@ -1,0 +1,9 @@
+<resources>
+    <string name="app_name">FinalMusicPlayer</string>
+    <string name="song_name_example">No te hagas</string>
+    <string name="artist_name_example">Bad Bunny</string>
+    <string name="current_time_example">00:03</string>
+    <string name="total_time_example">04:05</string>
+
+
+</resources>
