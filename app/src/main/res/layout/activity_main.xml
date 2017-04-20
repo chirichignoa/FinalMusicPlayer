@@ -23,10 +23,6 @@
             android:layout_marginLeft="16dp"
             android:layout_marginStart="16dp"
             android:layout_marginTop="16dp"
-            app:layout_constraintBottom_toBottomOf="@+id/artistName"
-            app:layout_constraintLeft_toLeftOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintVertical_bias="0.0"
             app:srcCompat="@drawable/ic_album" />
 
         <LinearLayout
@@ -46,13 +42,8 @@
                 android:layout_marginRight="32dp"
                 android:layout_marginStart="16dp"
                 android:layout_marginTop="16dp"
-                android:layout_weight="0.00"
                 android:text="@string/song_name_example"
                 android:textSize="18sp"
-                app:layout_constraintHorizontal_bias="0.0"
-                app:layout_constraintLeft_toRightOf="@+id/albumImage"
-                app:layout_constraintRight_toLeftOf="@+id/libraryButton"
-                app:layout_constraintTop_toTopOf="parent"
                 tools:text="@string/song_name_example" />
 
             <TextView
@@ -64,13 +55,8 @@
                 android:layout_marginRight="8dp"
                 android:layout_marginStart="16dp"
                 android:layout_marginTop="9dp"
-                android:layout_weight="0.07"
                 android:text="@string/artist_name_example"
                 android:textSize="16sp"
-                app:layout_constraintHorizontal_bias="0.0"
-                app:layout_constraintLeft_toRightOf="@+id/albumImage"
-                app:layout_constraintRight_toLeftOf="@+id/libraryButton"
-                app:layout_constraintTop_toBottomOf="@+id/songName"
                 tools:text="@string/artist_name_example" />
 
         </LinearLayout>
@@ -86,10 +72,6 @@
             android:layout_marginTop="0dp"
             android:layout_weight="0.34"
             android:background="@null"
-            app:layout_constraintBottom_toBottomOf="@+id/artistName"
-            app:layout_constraintRight_toRightOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintVertical_bias="0.0"
             app:srcCompat="@drawable/ic_library_music" />
 
     </LinearLayout>
@@ -119,30 +101,22 @@
             android:id="@+id/seekBar"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_below="@+id/playlistView"
-            android:layout_centerHorizontal="true"
             android:layout_marginTop="10dp" />
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:layout_alignParentLeft="true"
-            android:layout_alignParentStart="true"
-            android:layout_below="@+id/seekBar"
             android:orientation="horizontal">
 
             <TextView
                 android:id="@+id/currentTime"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_alignParentLeft="true"
-                android:layout_alignParentStart="true"
-                android:layout_below="@+id/seekBar"
                 android:layout_marginLeft="10dp"
                 android:text="@string/current_time_example" />
 
             <Space
-                android:layout_width="wrap_content"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1" />
 
@@ -150,9 +124,6 @@
                 android:id="@+id/totalTime"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_alignParentEnd="true"
-                android:layout_alignParentRight="true"
-                android:layout_below="@+id/seekBar"
                 android:layout_marginRight="10dp"
                 android:text="@string/total_time_example" />
         </LinearLayout>
@@ -171,23 +142,15 @@
         <Space
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_alignTop="@+id/playCommands"
             android:layout_marginTop="16dp"
-            android:layout_toLeftOf="@+id/playlistView"
-            android:layout_toStartOf="@+id/playlistView"
             android:layout_weight="0.59" />
 
         <ImageButton
             android:id="@+id/previousSongButton"
             android:layout_width="47dp"
             android:layout_height="match_parent"
-            android:layout_alignTop="@+id/playButton"
-            android:layout_toEndOf="@+id/currentTime"
-            android:layout_toRightOf="@+id/currentTime"
             android:layout_weight="0.59"
             android:background="@null"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintLeft_toLeftOf="parent"
             app:srcCompat="@drawable/ic_action_playback_prev" />
 
         <Space
@@ -214,8 +177,6 @@
             android:layout_height="match_parent"
             android:layout_weight="0.48"
             android:background="@null"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintRight_toRightOf="parent"
             app:srcCompat="@drawable/ic_action_playback_next" />
 
         <Space
