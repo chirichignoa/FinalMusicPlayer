@@ -1,13 +1,12 @@
 package com.chiri.finalmusicplayer;
 
-
-import android.app.LoaderManager;
 import android.content.Context;
-import android.content.CursorLoader;
-import android.content.Loader;
 import android.database.Cursor;
 import android.os.Bundle;
 import android.provider.MediaStore;
+import android.support.v4.app.LoaderManager;
+import android.support.v4.content.CursorLoader;
+import android.support.v4.content.Loader;
 
 /**
  * Created by chiri on 15/10/16.
@@ -36,11 +35,11 @@ public class AlbumLoader implements LoaderManager.LoaderCallbacks<Cursor> {
 
     @Override
     public void onLoadFinished(Loader<Cursor> loader, Cursor cursor) {
-//        ((MainActivity) context).getAdapter().swapCursor(cursor);
+//        ((LibraryActivity) context).getAdapter().swapCursor(cursor);
     }
 
     @Override
     public void onLoaderReset(Loader<Cursor> loader) {
-//        ((MainActivity) context).getAdapter().swapCursor(null);
+//        ((LibraryActivity) context).getAdapter().swapCursor(null);
     }
 }

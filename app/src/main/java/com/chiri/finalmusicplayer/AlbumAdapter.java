@@ -5,10 +5,10 @@ import android.content.Context;
 import android.database.Cursor;
 import android.net.Uri;
 import android.provider.MediaStore;
+import android.support.v4.widget.CursorAdapter;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.CursorAdapter;
 import android.widget.ImageView;
 import android.widget.TextView;
 
@@ -36,16 +36,16 @@ public class AlbumAdapter extends CursorAdapter {
     @Override
     public void bindView(View view, Context context, Cursor cursor) { //llena la vista (list_item)
         String album = cursor.getString(cursor.getColumnIndex(MediaStore.Audio.AlbumColumns.ALBUM)); //nombre del album
-        TextView albumTittle = (TextView) view.findViewById(R.id.albumTittle);
+        TextView albumTittle = (TextView) view.findViewById(R.id.mainTitle);
         albumTittle.setText(album);
 
         String artist = cursor.getString(cursor.getColumnIndex(MediaStore.Audio.AlbumColumns.ARTIST)); //nombre del artista
-        TextView artistName = (TextView)view.findViewById(R.id.artistName);
+        TextView artistName = (TextView)view.findViewById(R.id.subTitle);
         artistName.setText(artist);
 
         String albumArt = cursor.getString(cursor.getColumnIndex(MediaStore.Audio.AlbumColumns.ALBUM_ART)); //art del album
         //System.out.println(album+" "+albumArt);
-        ImageView image = (ImageView) view.findViewById(R.id.albumArt);
+        ImageView image = (ImageView) view.findViewById(R.id.image);
         if(albumArt != null) {
             image.setImageURI(Uri.parse(albumArt));
         }
