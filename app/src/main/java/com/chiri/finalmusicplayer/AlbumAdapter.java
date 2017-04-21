@@ -6,9 +6,13 @@ import android.database.Cursor;
 import android.net.Uri;
 import android.provider.MediaStore;
 import android.support.v4.widget.CursorAdapter;
+import android.support.v7.widget.PopupMenu;
+import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.MenuInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
 
@@ -29,12 +33,14 @@ public class AlbumAdapter extends CursorAdapter {
 
     @Override
     public View newView(Context context, Cursor cursor, ViewGroup viewGroup) { //crea la vista (list_item)
+        Log.d("AlbumAdapter", "Creando la vista");
         View v = this.inflater.inflate(R.layout.list_item,viewGroup,false);
         return v;
     }
 
     @Override
-    public void bindView(View view, Context context, Cursor cursor) { //llena la vista (list_item)
+    public void bindView(View view, final Context context, Cursor cursor) { //llena la vista (list_item)
+        Log.d("AlbumAdapter", "Llenando la vista");
         String album = cursor.getString(cursor.getColumnIndex(MediaStore.Audio.AlbumColumns.ALBUM)); //nombre del album
         TextView albumTittle = (TextView) view.findViewById(R.id.mainTitle);
         albumTittle.setText(album);
@@ -42,6 +48,17 @@ public class AlbumAdapter extends CursorAdapter {
         String artist = cursor.getString(cursor.getColumnIndex(MediaStore.Audio.AlbumColumns.ARTIST)); //nombre del artista
         TextView artistName = (TextView)view.findViewById(R.id.subTitle);
         artistName.setText(artist);
+
+        ImageButton overflowButton = (ImageButton) view.findViewById(R.id.overflowButton);
+        overflowButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                PopupMenu popup = new PopupMenu(context, v);
+                MenuInflater inflater = popup.getMenuInflater();
+                inflater.inflate(R.menu.actions, popup.getMenu());
+                popup.show();
+            }
+        });
 
         String albumArt = cursor.getString(cursor.getColumnIndex(MediaStore.Audio.AlbumColumns.ALBUM_ART)); //art del album
         //System.out.println(album+" "+albumArt);

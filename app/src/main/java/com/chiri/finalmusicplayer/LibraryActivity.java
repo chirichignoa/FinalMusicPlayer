@@ -42,11 +42,11 @@ public class LibraryActivity extends AppCompatActivity {
 
     }
 
-//    public CursorAdapter getAdapter(){
-//        return cursor;
-//    }
-//
-//    public static void setAdapter(CursorAdapter adapter){
-//        cursor = adapter;
-//    }
+    public CursorAdapter getAdapter(){
+        return cursor;
+    }
+
+    public static void setAdapter(CursorAdapter adapter){
+        cursor = adapter;
+    }
 }
