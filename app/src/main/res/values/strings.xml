@@ -5,9 +5,9 @@
     <string name="current_time_example">00:03</string>
     <string name="total_time_example">04:05</string>
 
-    <string name="title_tab1">Canciones</string>
-    <string name="title_tab2">Albumes</string>
-    <string name="title_tab3">Playlists</string>
+    <string name="title_tab1">CANCIONES</string>
+    <string name="title_tab2">ALBUMES</string>
+    <string name="title_tab3">PLAYLISTS</string>
 
     <string name="action_add_playlist">Anadir a la playlist actual</string>
 
