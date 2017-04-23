@@ -13,8 +13,10 @@ import android.widget.ListView;
 import com.chiri.finalmusicplayer.LibraryActivity;
 import com.chiri.finalmusicplayer.R;
 import com.chiri.finalmusicplayer.adapters.AlbumAdapter;
+import com.chiri.finalmusicplayer.adapters.PlaylistsAdapter;
 import com.chiri.finalmusicplayer.adapters.SongAdapter;
 import com.chiri.finalmusicplayer.loaders.AlbumLoader;
+import com.chiri.finalmusicplayer.loaders.PlaylistsLoader;
 import com.chiri.finalmusicplayer.loaders.SongLoader;
 
 
@@ -71,14 +73,14 @@ public class PageFragment extends Fragment {
                 listView.setAdapter(albumAdapter);
                 getLoaderManager().initLoader(0, null, new AlbumLoader(getContext())); //id,args,callback}
                 break;
-//            case 2:
-//                PlaylistsAdapter playlistsAdapter = new PlaylistsAdapter(getContext(),null,false);
-//                Log.d("PageFragment", "Seteando AlbumAdapter a Library");
-//                ((LibraryActivity)getActivity()).setPlaylistsAdapter(playlistsAdapter);
-//                Log.d("PageFragment", "Seteando AlbumAdapter");
-//                listView.setAdapter(playlistsAdapter);
-//                getLoaderManager().initLoader(0, null, new AlbumLoader(getContext())); //id,args,callback}
-//                break;
+            case 2:
+                PlaylistsAdapter playlistsAdapter = new PlaylistsAdapter(getContext(),null,false);
+                Log.d("PageFragment", "Seteando AlbumAdapter a Library");
+                ((LibraryActivity)getActivity()).setPlaylistsAdapter(playlistsAdapter);
+                Log.d("PageFragment", "Seteando AlbumAdapter");
+                listView.setAdapter(playlistsAdapter);
+                getLoaderManager().initLoader(0, null, new PlaylistsLoader(getContext())); //id,args,callback}
+                break;
         }
         return view;
     }

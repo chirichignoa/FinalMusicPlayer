@@ -28,15 +28,16 @@ public class PlaylistsAdapter extends CursorAdapter {
 
     @Override
     public View newView(Context context, Cursor cursor, ViewGroup parent) {
-        Log.d("AlbumAdapter", "Creando la vista");
+        Log.d("Playlistdapter", "Creando la vista");
         View v = this.inflater.inflate(R.layout.list_item,parent,false);
         return v;
     }
 
     @Override
     public void bindView(View view, Context context, Cursor cursor) {
-        String playlist = null; //nombre de la cancion
-        Log.d("SONG", playlist);
+        String playlist = cursor.getString(cursor.getColumnIndex(MediaStore.Audio.Playlists.NAME)); //nombre de la playlist
+        Log.d("Playlist", playlist);
+
         TextView songTitle = (TextView) view.findViewById(R.id.mainTitle);
         songTitle.setText(playlist);
 
@@ -44,6 +45,6 @@ public class PlaylistsAdapter extends CursorAdapter {
         artistName.setVisibility(View.INVISIBLE);
 
         ImageView image = (ImageView) view.findViewById(R.id.image);
-        image.setImageResource(R.drawable.no_art);
+        image.setImageResource(R.drawable.music_note);
     }
 }
