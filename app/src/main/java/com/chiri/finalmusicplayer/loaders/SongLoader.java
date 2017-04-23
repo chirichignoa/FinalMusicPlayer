@@ -25,7 +25,7 @@ public class SongLoader implements LoaderManager.LoaderCallbacks<Cursor> {
     @Override
     public Loader<Cursor> onCreateLoader(int i, Bundle bundle) {
         return new CursorLoader(this.context,
-                MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, //Uri Todo:ver si anda con memoria interna
+                MediaStore.Audio.Media.EXTERNAL_CONTENT_URI,
                 new String[]{   "_id",
                                 MediaStore.Audio.Media.TITLE,
                                 MediaStore.Audio.Media.ARTIST,
@@ -40,11 +40,13 @@ public class SongLoader implements LoaderManager.LoaderCallbacks<Cursor> {
 
     @Override
     public void onLoadFinished(Loader<Cursor> loader, Cursor cursor) {
+        Log.d("SongLoader", "Carga finalizada");
         ((LibraryActivity) context).getSongAdapter().swapCursor(cursor);
     }
 
     @Override
     public void onLoaderReset(Loader<Cursor> loader) {
+        Log.d("SongLoader", "Loader reset");
         ((LibraryActivity) context).getSongAdapter().swapCursor(null);
     }
 }
