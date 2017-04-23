@@ -8,8 +8,17 @@ import android.support.v4.widget.CursorAdapter;
 import android.support.v7.app.AppCompatActivity;
 import android.widget.ImageView;
 
+import com.chiri.finalmusicplayer.adapters.AlbumAdapter;
+import com.chiri.finalmusicplayer.adapters.PagerAdapter;
+import com.chiri.finalmusicplayer.adapters.PlaylistsAdapter;
+import com.chiri.finalmusicplayer.adapters.SongAdapter;
+
 public class LibraryActivity extends AppCompatActivity {
-    private static CursorAdapter cursor;
+
+
+    private CursorAdapter songAdapter;
+    private CursorAdapter albumAdapter;
+    private CursorAdapter playlistsAdapter;
     private ViewPager viewPager;
     private TabLayout tabs;
     private FragmentPagerAdapter adapterViewPager;
@@ -42,11 +51,28 @@ public class LibraryActivity extends AppCompatActivity {
 
     }
 
-    public CursorAdapter getAdapter(){
-        return cursor;
+    public CursorAdapter getSongAdapter() {
+        return songAdapter;
     }
 
-    public static void setAdapter(CursorAdapter adapter){
-        cursor = adapter;
+    public void setSongAdapter(SongAdapter songAdapter) {
+        this.songAdapter = songAdapter;
     }
+
+    public CursorAdapter getAlbumAdapter() {
+        return albumAdapter;
+    }
+
+    public void setAlbumAdapter(AlbumAdapter albumAdapter) {
+        this.albumAdapter = albumAdapter;
+    }
+
+    public CursorAdapter getPlaylistsAdapter() {
+        return playlistsAdapter;
+    }
+
+    public void setPlaylistsAdapter(PlaylistsAdapter playlistsAdapter) {
+        this.playlistsAdapter = playlistsAdapter;
+    }
+
 }

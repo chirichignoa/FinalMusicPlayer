@@ -1,4 +1,4 @@
-package com.chiri.finalmusicplayer;
+package com.chiri.finalmusicplayer.service;
 
 import android.app.Notification;
 import android.app.PendingIntent;
@@ -18,7 +18,8 @@ import android.support.v4.app.NotificationCompat;
 import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 
-import com.chiri.finalmusicplayer.Song;
+import com.chiri.finalmusicplayer.R;
+import com.chiri.finalmusicplayer.model.Song;
 
 import java.io.IOException;
 import java.util.ArrayList;

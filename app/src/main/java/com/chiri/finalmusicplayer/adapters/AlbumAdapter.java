@@ -1,4 +1,4 @@
-package com.chiri.finalmusicplayer;
+package com.chiri.finalmusicplayer.adapters;
 
 
 import android.content.Context;
@@ -15,6 +15,8 @@ import android.view.ViewGroup;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
+
+import com.chiri.finalmusicplayer.R;
 
 /**
  * Created by chiri on 15/10/16.

@@ -1,4 +1,4 @@
-package com.chiri.finalmusicplayer;
+package com.chiri.finalmusicplayer.adapters;
 
 /**
  * Created by chiri on 20/04/17.
@@ -9,6 +9,9 @@ import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
 import android.util.Log;
+
+import com.chiri.finalmusicplayer.fragments.PageFragment;
+import com.chiri.finalmusicplayer.R;
 
 public class PagerAdapter extends FragmentPagerAdapter {
     final int PAGE_COUNT = 3;

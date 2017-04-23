@@ -1,4 +1,4 @@
-package com.chiri.finalmusicplayer;
+package com.chiri.finalmusicplayer.loaders;
 
 import android.content.Context;
 import android.database.Cursor;
@@ -8,6 +8,8 @@ import android.support.v4.app.LoaderManager;
 import android.support.v4.content.CursorLoader;
 import android.support.v4.content.Loader;
 import android.util.Log;
+
+import com.chiri.finalmusicplayer.LibraryActivity;
 
 /**
  * Created by chiri on 15/10/16.
@@ -26,9 +28,10 @@ public class AlbumLoader implements LoaderManager.LoaderCallbacks<Cursor> {
         Log.d("AlbumLoader", "Creando cursor");
         return new CursorLoader(this.context,
                 MediaStore.Audio.Albums.EXTERNAL_CONTENT_URI, //Uri Todo:ver si anda con memoria interna
-                new String[]{"_id",MediaStore.Audio.AlbumColumns.ALBUM,
-                        MediaStore.Audio.AlbumColumns.ARTIST,
-                        MediaStore.Audio.AlbumColumns.ALBUM_ART}, //Proyeccion: son las columnas que retornara la query
+                new String[]{"_id",
+                            MediaStore.Audio.AlbumColumns.ALBUM,
+                            MediaStore.Audio.AlbumColumns.ARTIST,
+                            MediaStore.Audio.AlbumColumns.ALBUM_ART}, //Proyeccion: son las columnas que retornara la query
                 //selection.toString(), //Seleccion:la fila que devolvera la query, la que coincida con el album
                 null,
                 //new String[]{((MainActivity) context).getArtist()}, //
@@ -39,12 +42,12 @@ public class AlbumLoader implements LoaderManager.LoaderCallbacks<Cursor> {
     @Override
     public void onLoadFinished(Loader<Cursor> loader, Cursor cursor) {
         Log.d("AlbumLoader", "Carga finalizada");
-        ((LibraryActivity) context).getAdapter().swapCursor(cursor);
+        ((LibraryActivity) context).getAlbumAdapter().swapCursor(cursor);
     }
 
     @Override
     public void onLoaderReset(Loader<Cursor> loader) {
         Log.d("AlbumLoader", "Loader reset");
-        ((LibraryActivity) context).getAdapter().swapCursor(null);
+        ((LibraryActivity) context).getAlbumAdapter().swapCursor(null);
     }
 }

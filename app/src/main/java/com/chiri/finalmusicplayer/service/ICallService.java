@@ -1,4 +1,4 @@
-package com.chiri.finalmusicplayer;
+package com.chiri.finalmusicplayer.service;
 
 import java.io.IOException;
 

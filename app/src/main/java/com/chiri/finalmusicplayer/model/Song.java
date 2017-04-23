@@ -1,4 +1,4 @@
-package com.chiri.finalmusicplayer;
+package com.chiri.finalmusicplayer.model;
 
 /**
  * Created by chiri on 15/10/16.
