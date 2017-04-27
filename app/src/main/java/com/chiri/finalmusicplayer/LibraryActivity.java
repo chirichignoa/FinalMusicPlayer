@@ -1,12 +1,17 @@
 package com.chiri.finalmusicplayer;
 
+import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.support.design.widget.TabLayout;
+import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.FragmentPagerAdapter;
+import android.support.v4.content.ContextCompat;
 import android.support.v4.view.ViewPager;
 import android.support.v4.widget.CursorAdapter;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.widget.ImageView;
+import android.widget.Toast;
 
 import com.chiri.finalmusicplayer.adapters.AlbumAdapter;
 import com.chiri.finalmusicplayer.adapters.PagerAdapter;
@@ -14,6 +19,8 @@ import com.chiri.finalmusicplayer.adapters.PlaylistsAdapter;
 import com.chiri.finalmusicplayer.adapters.SongAdapter;
 
 public class LibraryActivity extends AppCompatActivity {
+
+    private static final int PERMISSION_REQUEST_CODE = 1;
 
     private CursorAdapter songAdapter;
     private CursorAdapter albumAdapter;
@@ -29,8 +36,45 @@ public class LibraryActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_library);
+        if (checkPermission()) {
+            setupTabLayout();
+        } else {
+            requestPermission(); // Code for permission
+        }
+    }
+    private boolean checkPermission() {
+        int result = ContextCompat.checkSelfPermission(LibraryActivity.this, android.Manifest.permission.READ_EXTERNAL_STORAGE);
+        Log.d("RESULT", Integer.toString(result));
+        Log.d("GRANTED", Integer.toString(PackageManager.PERMISSION_GRANTED));
+        if (result == PackageManager.PERMISSION_GRANTED) {
+            return true;
+        } else {
+            return false;
+        }
+    }
 
-        setupTabLayout();
+    private void requestPermission() {
+        if (ActivityCompat.shouldShowRequestPermissionRationale(LibraryActivity.this, android.Manifest.permission.READ_EXTERNAL_STORAGE)) {
+            Log.d("REQUESTING", "EXPLICACION");
+            Toast.makeText(LibraryActivity.this, "Leer del almacenamiento permite obtener los archivos de audio del sistema. Por favor conceda este permiso en los ajustes.", Toast.LENGTH_LONG).show();
+        } else {
+            Log.d("REQUESTING", "PETICION");
+            ActivityCompat.requestPermissions(LibraryActivity.this, new String[]{android.Manifest.permission.READ_EXTERNAL_STORAGE}, PERMISSION_REQUEST_CODE);
+        }
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, String permissions[], int[] grantResults) {
+        switch (requestCode) {
+            case PERMISSION_REQUEST_CODE:
+                if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    Log.e("value", "Permission Granted.");
+                    setupTabLayout();
+                } else {
+                    Log.e("value", "Permission Denied.");
+                }
+                break;
+        }
     }
 
     private void setupTabLayout() {
