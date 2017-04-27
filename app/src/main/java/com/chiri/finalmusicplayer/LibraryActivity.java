@@ -15,7 +15,6 @@ import com.chiri.finalmusicplayer.adapters.SongAdapter;
 
 public class LibraryActivity extends AppCompatActivity {
 
-
     private CursorAdapter songAdapter;
     private CursorAdapter albumAdapter;
     private CursorAdapter playlistsAdapter;
