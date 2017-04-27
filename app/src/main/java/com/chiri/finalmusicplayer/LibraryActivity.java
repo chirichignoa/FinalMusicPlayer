@@ -44,8 +44,6 @@ public class LibraryActivity extends AppCompatActivity {
     }
     private boolean checkPermission() {
         int result = ContextCompat.checkSelfPermission(LibraryActivity.this, android.Manifest.permission.READ_EXTERNAL_STORAGE);
-        Log.d("RESULT", Integer.toString(result));
-        Log.d("GRANTED", Integer.toString(PackageManager.PERMISSION_GRANTED));
         if (result == PackageManager.PERMISSION_GRANTED) {
             return true;
         } else {
@@ -55,10 +53,8 @@ public class LibraryActivity extends AppCompatActivity {
 
     private void requestPermission() {
         if (ActivityCompat.shouldShowRequestPermissionRationale(LibraryActivity.this, android.Manifest.permission.READ_EXTERNAL_STORAGE)) {
-            Log.d("REQUESTING", "EXPLICACION");
             Toast.makeText(LibraryActivity.this, "Leer del almacenamiento permite obtener los archivos de audio del sistema. Por favor conceda este permiso en los ajustes.", Toast.LENGTH_LONG).show();
         } else {
-            Log.d("REQUESTING", "PETICION");
             ActivityCompat.requestPermissions(LibraryActivity.this, new String[]{android.Manifest.permission.READ_EXTERNAL_STORAGE}, PERMISSION_REQUEST_CODE);
         }
     }

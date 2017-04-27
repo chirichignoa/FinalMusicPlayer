@@ -43,6 +43,7 @@ public class AlbumAdapter extends CursorAdapter {
     @Override
     public void bindView(View view, final Context context, Cursor cursor) { //llena la vista (list_item)
         Log.d("AlbumAdapter", "Llenando la vista");
+        //VER SI NO HAY ALBUMES PONER MENSAJE
         String album = cursor.getString(cursor.getColumnIndex(MediaStore.Audio.AlbumColumns.ALBUM)); //nombre del album
         TextView albumTittle = (TextView) view.findViewById(R.id.mainTitle);
         albumTittle.setText(album);

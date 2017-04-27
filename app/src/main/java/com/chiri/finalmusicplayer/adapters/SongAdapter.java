@@ -43,6 +43,7 @@ public class SongAdapter extends CursorAdapter  {
     public void bindView(View view, final Context context, Cursor cursor) {
         String song = cursor.getString(cursor.getColumnIndex(MediaStore.Audio.Media.TITLE)); //nombre de la cancion
         Log.d("SONG", song);
+        //VER SI NO HAY CANCIONES PONER MENSAJE
         TextView songTitle = (TextView) view.findViewById(R.id.mainTitle);
         songTitle.setText(song);
 

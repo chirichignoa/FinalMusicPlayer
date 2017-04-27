@@ -37,6 +37,7 @@ public class PlaylistsAdapter extends CursorAdapter {
     public void bindView(View view, Context context, Cursor cursor) {
         String playlist = cursor.getString(cursor.getColumnIndex(MediaStore.Audio.Playlists.NAME)); //nombre de la playlist
         Log.d("Playlist", playlist);
+        //VER SI NO HAY PLAYLISTS PONER MENSAJE
 
         TextView songTitle = (TextView) view.findViewById(R.id.mainTitle);
         songTitle.setText(playlist);
