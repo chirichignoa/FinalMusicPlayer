@@ -9,7 +9,7 @@ import android.support.v4.content.CursorLoader;
 import android.support.v4.content.Loader;
 import android.util.Log;
 
-import com.chiri.finalmusicplayer.LibraryActivity;
+import com.chiri.finalmusicplayer.activities.LibraryActivity;
 
 /**
  * Created by chiri on 21/04/17.
