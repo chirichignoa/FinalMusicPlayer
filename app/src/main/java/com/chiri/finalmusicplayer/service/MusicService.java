@@ -10,55 +10,106 @@ import android.graphics.BitmapFactory;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.net.Uri;
-import android.os.Binder;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.provider.MediaStore;
+import android.support.annotation.Nullable;
 import android.support.v4.app.NotificationCompat;
 import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 
 import com.chiri.finalmusicplayer.R;
+import com.chiri.finalmusicplayer.model.Codes;
 import com.chiri.finalmusicplayer.model.Song;
-
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Created by chiri on 24/10/16.
+ * Created by chiri on 26/05/17.
  */
 
 public class MusicService extends Service implements MediaPlayer.OnPreparedListener,
-        MediaPlayer.OnErrorListener, MediaPlayer.OnCompletionListener{
+        MediaPlayer.OnErrorListener, MediaPlayer.OnCompletionListener {
 
     public final static String EXTRA_SONG = "Song Name";
+    public final static String TAG = MusicService.class.getCanonicalName();
 
     private static MediaPlayer mediaPlayer;
-    private static String albumID;
+    private static String artistName, songName, albumArt;
     private static List<Song> songs = new ArrayList<>();
     private static int playingTrack = 0;
     private static boolean isPlaying = false, isPaused = false;
     private LocalBroadcastManager broadcaster;
 
-
     public MusicService() {
+
     }
 
     @Override
     public void onCreate() {
         broadcaster = LocalBroadcastManager.getInstance(this);
+        //initMediaPlayer();
     }
 
     @Override
-    public IBinder onBind(Intent arg0) {
-        if(isPlaying){
-            this.stop();
+    public int onStartCommand(Intent intent, int flags, int startId) {
+        SongLoader sl = new SongLoader();
+        this.decodeIntent(intent, sl);
+        //this.registerListeners();
+
+//        sl.execute(Uri uri, String[] projection, String selection, String[] selectionArgs);
+        return START_NOT_STICKY;
+    }
+
+    private void decodeIntent(Intent intent, SongLoader sl){
+        final Bundle bundle = intent.getExtras();
+        switch (bundle.getString(Codes.TAG_TYPE,"NULL")){
+            case Codes.TAG_SONG: {
+                //clear lista actual
+                MusicService.this.stop();
+                songs.clear();
+                playingTrack = 0;
+
+                songName = bundle.getString(Codes.TAG_TITLE);
+                artistName = bundle.getString(Codes.TAG_ARTIST);
+                Uri uri = MediaStore.Audio.Media.EXTERNAL_CONTENT_URI;
+                String[] projection = { MediaStore.Audio.Media.TITLE,
+                                        MediaStore.Audio.Media.ARTIST,
+                                        MediaStore.Audio.Media.DURATION,
+                                        MediaStore.Audio.Media.ALBUM,
+                                        MediaStore.Audio.Media.DATA};
+                String selection = MediaStore.Audio.Media.TITLE + "=? AND " + MediaStore.Audio.Media.ARTIST + "=?";
+                String[] selectionArgs = {songName, artistName};
+                sl.execute(uri,projection,selection,selectionArgs);
+            }
+            break;
+            case Codes.TAG_ALBUM: {
+                //clear lista actual
+                MusicService.this.stop();
+                songs.clear();
+                playingTrack = 0;
+            }
+            break;
+            case Codes.TAG_PLAYLIST: {
+                //clear lista actual
+                MusicService.this.stop();
+                songs.clear();
+                playingTrack = 0;
+            }
+            default:
+                break;
+        }
+    }
+
+    @Nullable
+    @Override
+    public IBinder onBind(Intent intent) {
+        if (isPlaying) {
+           this.stop(); //posible llamada al clear
         }
         initMediaPlayer();
-        Bundle extras = arg0.getExtras();
-        albumID = extras.getString("AlbumID");
-        return new MusicServiceBinder();
+        return null;
     }
 
     private void initMediaPlayer() {
@@ -68,7 +119,50 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
         mediaPlayer.setOnPreparedListener(this);
         mediaPlayer.setOnErrorListener(this);
         mediaPlayer.setOnCompletionListener(this);
-        mediaPlayer.setVolume(75,75);
+        mediaPlayer.setVolume(75, 75);
+    }
+
+    @Override
+    public void onCompletion(MediaPlayer mp) {
+
+    }
+
+    @Override
+    public boolean onError(MediaPlayer mp, int what, int extra) {
+        return false;
+    }
+
+    @Override
+    public void onPrepared(MediaPlayer mp) {
+
+    }
+
+    private void play() {
+
+    }
+
+    private void stop() {
+
+    }
+
+    private void pause(){
+
+    }
+
+    private void resume(){
+
+    }
+
+    private void previousSong() {
+
+    }
+
+    private void nextSong() {
+
+    }
+
+    private void addToQueue(){
+
     }
 
     private void startForeground(){
@@ -107,174 +201,45 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
         startForeground(1, notification);
     }
 
-    public void play() {
-        try{
-            this.songs = getSongs();
-            Log.i("Songs", Integer.toString(songs.size()));
+    private class SongLoader extends AsyncTask<Object,Object,Object> {
+
+        @Override
+        protected Object doInBackground(Object... params) {
+            //Cargando el cursor
+            Log.d(TAG,"Creating Cursor");
+            Cursor data = MusicService.this.getContentResolver().query(
+                    (Uri)params[0],
+                    (String[])params[1],
+                    (String)params[2],
+                    (String[])params[3],
+                    null);
+            // /Recorriendo el cursor
+            Log.d(TAG, "Loading Songs");
+            while(data.moveToNext()){
+                String a = data.getString(data.getColumnIndex(MediaStore.Audio.Media.DURATION));
+                if(a == null) // un archivo ocasionaba problemas porque tenia duracion 0
+                    a = Integer.toString(0);
+                Song s = new Song(  songName,
+                                    artistName,
+                                    data.getString(data.getColumnIndex(MediaStore.Audio.Media.ALBUM)),
+                                    //Long.parseLong(data.getString(data.getColumnIndex(MediaStore.Audio.Media.DURATION))),//duration,MediaStore.Audio.Media.DURATION,
+                                    Long.parseLong(a),//duration,MediaStore.Audio.Media.DURATION,
+                                    data.getString(data.getColumnIndex(MediaStore.Audio.Media.DATA)));
+
+                MusicService.this.songs.add(s);
+            }
+
+            Log.d(TAG,"Closing Cursor");
+            data.close();
+            return null;
+        }
+
+        @Override
+        protected void onPostExecute(Object o) {
+            Log.d(TAG,"Songs Loaded");
             for(Song s: songs){
-                System.out.println(s.toString());
-            }
-            Uri uri = Uri.parse(songs.get(playingTrack).getUri());
-            mediaPlayer.setDataSource(getApplicationContext(),uri);
-            Log.i("Media Player","Setting path: "+uri.toString());
-            mediaPlayer.prepareAsync();
-            this.startForeground();
-        }
-        catch(Exception e){
-            Log.e("Media Player Error", "Error setting data source", e);
-        }
-    }
-
-    @Override
-    public void onPrepared(MediaPlayer mediaPlayer) {
-       sendResult();
-       Log.i("Player Info","Empieza a reproducir");
-       mediaPlayer.start();
-       isPlaying = true;
-       isPaused = false;
-    }
-
-    public void sendResult() {
-        Intent intent = new Intent(this.EXTRA_SONG);
-        intent.putExtra(this.EXTRA_SONG, songs.get(playingTrack).getSongName());
-        broadcaster.sendBroadcast(intent);
-    }
-
-    public void stop() {
-        Log.i("Player Info","Paro");
-        isPlaying = false;
-        playingTrack = 0;
-        mediaPlayer.stop();
-        mediaPlayer.reset();
-        //stop foreground
-    }
-
-    public void pause() {
-        Log.i("Player Info","Esta en pausa");
-        isPaused = true;
-        mediaPlayer.pause();
-    }
-
-    public void resume(){
-        Log.i("Player Info","Resumiendo");
-        this.mediaPlayer.start();
-    }
-
-    public void nextSong() {
-        Log.i("Player Info","Cancion siguiente");
-        if(playingTrack+1 < songs.size()){
-            playingTrack += 1;
-            mediaPlayer.reset();
-            this.play();
-        }else{
-            this.stop();
-        }
-    }
-
-    public void previousSong() {
-        Log.i("Player Info","Cancion anterior");
-        if(playingTrack-1 >= 0){
-            playingTrack -= 1;
-            mediaPlayer.reset();
-            this.play();
-        }
-    }
-
-    public boolean isPlaying() {
-        return isPlaying;
-    }
-
-    public boolean isPaused() {
-        return isPaused;
-    }
-
-    @Override
-    public boolean onError(MediaPlayer mediaPlayer, int i, int i1) {
-        Log.e("Player Error","Fallo de reproductor");
-        return true;
-    }
-
-    @Override
-    public void onCompletion(MediaPlayer mediaPlayer) {
-        Log.i("Player Info","Termino la cancion numero: "+ playingTrack);
-        this.nextSong();
-    }
-
-    public class MusicServiceBinder extends Binder implements ICallService {
-
-        MusicService getService() {
-            // Return this instance of LocalService so clients can call public methods
-            return MusicService.this;
-        }
-
-
-        @Override
-        public void play() throws IOException {
-            MusicService.this.play();
-        }
-
-        @Override
-        public void stop() {
-            MusicService.this.stop();
-        }
-
-        @Override
-        public void pause() {
-            MusicService.this.pause();
-        }
-
-        @Override
-        public void nextSong() {
-            MusicService.this.nextSong();
-        }
-
-        @Override
-        public void previousSong() {
-            MusicService.this.previousSong();
-        }
-
-        @Override
-        public void resume() {
-            MusicService.this.resume();
-        }
-    }
-
-    public List<Song> getSongs() {
-        List<Song> result = new ArrayList<>();
-        String selection = "IS_MUSIC != 0 AND ALBUM_ID = " + albumID;
-
-        String[] projection = {
-                MediaStore.Audio.Media.TITLE,
-                MediaStore.Audio.Media.ARTIST,
-                MediaStore.Audio.Media.DATA,
-                MediaStore.Audio.Media.DISPLAY_NAME,
-                MediaStore.Audio.Media.DURATION,
-                MediaStore.Audio.Media.ALBUM,
-                MediaStore.Audio.Media.ALBUM_ID,
-        };
-        //final String sortOrder = MediaStore.Audio.AudioColumns.TITLE + " COLLATE LOCALIZED ASC";
-
-        Cursor cursor = null;
-        try {
-            Uri uri = android.provider.MediaStore.Audio.Media.EXTERNAL_CONTENT_URI;
-            cursor = getContentResolver().query(uri, projection, selection, null, null);
-            if (cursor != null) {
-                cursor.moveToFirst();
-                while (!cursor.isAfterLast()) { //si ya nos pasamos del ultimo
-                    Song song = new Song(cursor.getString(0), cursor.getString(1),
-                            cursor.getString(5), cursor.getLong(4), cursor.getString(2));
-                    result.add(song);
-                    cursor.moveToNext();
-                }
-            } else
-                Log.e("Player Error", "Canciones en null");
-        } catch (Exception e) {
-            Log.e("Player Error", e.toString());
-        } finally {
-            if (cursor != null) {
-                cursor.close();
+                Log.d(TAG, s.toString());
             }
         }
-        return result;
     }
 }
