@@ -1,4 +1,4 @@
-package com.chiri.finalmusicplayer;
+package com.chiri.finalmusicplayer.activities;
 
 import android.content.pm.PackageManager;
 import android.os.Bundle;
@@ -13,6 +13,7 @@ import android.util.Log;
 import android.widget.ImageView;
 import android.widget.Toast;
 
+import com.chiri.finalmusicplayer.R;
 import com.chiri.finalmusicplayer.adapters.AlbumAdapter;
 import com.chiri.finalmusicplayer.adapters.PagerAdapter;
 import com.chiri.finalmusicplayer.adapters.PlaylistsAdapter;

@@ -65,6 +65,7 @@ public class AlbumAdapter extends CursorAdapter {
 
         String albumArt = cursor.getString(cursor.getColumnIndex(MediaStore.Audio.AlbumColumns.ALBUM_ART)); //art del album
         //System.out.println(album+" "+albumArt);
+
         ImageView image = (ImageView) view.findViewById(R.id.image);
         if(albumArt != null) {
             image.setImageURI(Uri.parse(albumArt));
