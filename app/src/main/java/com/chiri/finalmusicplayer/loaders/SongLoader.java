@@ -24,6 +24,7 @@ public class SongLoader implements LoaderManager.LoaderCallbacks<Cursor> {
 
     @Override
     public Loader<Cursor> onCreateLoader(int i, Bundle bundle) {
+        String selection = MediaStore.Audio.Media.IS_MUSIC +" != 0 ";
         return new CursorLoader(this.context,
                 MediaStore.Audio.Media.EXTERNAL_CONTENT_URI,
                 new String[]{   "_id",
@@ -32,8 +33,7 @@ public class SongLoader implements LoaderManager.LoaderCallbacks<Cursor> {
                                 MediaStore.Audio.Media.DURATION,
                                 MediaStore.Audio.Media.ALBUM,
                                 MediaStore.Audio.Media.DATA}, //Proyeccion: son las columnas que retornara la query
-                //selection.toString(), //Seleccion:la fila que devolvera la query, la que coincida con el album
-                null,
+                selection,//Seleccion:la fila que devolvera la query, la que coincida con el album
                 null,
                 null);
     }

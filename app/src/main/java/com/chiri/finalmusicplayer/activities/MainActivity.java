@@ -5,9 +5,11 @@ import android.content.BroadcastReceiver;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.ServiceConnection;
 import android.net.Uri;
 import android.os.IBinder;
+import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
@@ -37,6 +39,22 @@ public class MainActivity extends AppCompatActivity {
     private ListView currentPlayList;
     private CursorAdapter currentPlayListAdapter;
     private static final int CODIGO_LibraryActivity = 1;
+    private MusicService.MusicServiceBinder iCallService;
+    private MusicService musicService;
+    private ServiceConnection sc = new ServiceConnection() {
+        @Override
+        public void onServiceConnected(ComponentName name, IBinder service) {
+            iCallService = (MusicService.MusicServiceBinder) service;
+            musicService = iCallService.getService();
+        }
+
+        @Override
+        public void onServiceDisconnected(ComponentName name) {
+            iCallService = null;
+        }
+    };
+
+    private BroadcastReceiver receiver;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -63,6 +81,24 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
+        receiver = new BroadcastReceiver() {
+            @Override
+            public void onReceive(Context context, Intent intent) {
+//                Song s = intent.getParcelableExtra(Codes.TAG_SONG);
+                Song s = intent.getExtras().getParcelable(Codes.TAG_SONG);
+                Log.i("Cancion recibida", s.getSongName());
+                songName.setText(s.getSongName());
+                albumArt.setImageURI(Uri.parse(s.getAlbumArt()));
+                artistName.setText(s.getArtistName());
+
+                Long duration = s.getDuration();
+                Long minutes = duration / (60 * 1000);
+                Long seconds = (duration / 1000) % 60;
+
+                totalTime.setText(minutes.toString() + ":" + seconds.toString());
+            }
+        };
+        registerReceiver(receiver, new IntentFilter(Codes.TAG_SEND_RESULT));
     }
 
     @Override
@@ -75,22 +111,31 @@ public class MainActivity extends AppCompatActivity {
                 if (resultCode == Activity.RESULT_OK) {
                     String song_name = data.getStringExtra(TAG_SONG_TITLE);
                     Toast.makeText(MainActivity.this, song_name, Toast.LENGTH_LONG).show();
+                    Intent newIntent = new Intent(this,MusicService.class);
+                    Bundle newBundle = data.getExtras();
+                    newIntent.putExtras(newBundle);
+                    bindService(newIntent,sc,BIND_AUTO_CREATE);
                 }
         }
     }
 
-//    Song s = intent.getParcelableExtra(Codes.EXTRA_SONG);
-//            Log.i("Cancion recibida", s.getSongName());
-//            songName.setText(s.getSongName());
-//            albumArt.setImageURI(Uri.parse(s.getAlbumArt()));
-//            artistName.setText(s.getArtistName());
-//
-//              Long duration = s.getDuration();
-//    Long minutes = duration / (60 * 1000);
-//    Long seconds = (duration / 1000) % 60;
-//
-//            totalTime.setText(minutes.toString() + ":" + seconds.toString());
+    @Override
+    protected void onStart() {
+        super.onStart();
+        LocalBroadcastManager.getInstance(this).registerReceiver((receiver),
+                new IntentFilter(Codes.TAG_SEND_RESULT)
+        );
+    }
 
+    @Override
+    protected void onResume() {
+        super.onResume();
+        registerReceiver((receiver), new IntentFilter(Codes.TAG_SEND_RESULT));
+    }
 
-
+    @Override
+    protected void onStop() {
+        LocalBroadcastManager.getInstance(this).unregisterReceiver(receiver);
+        super.onStop();
+    }
 }

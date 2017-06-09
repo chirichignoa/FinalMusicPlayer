@@ -14,4 +14,5 @@ public interface ICallService {
     void nextSong();
     void previousSong();
     void resume();
+    void addQueue();
 }

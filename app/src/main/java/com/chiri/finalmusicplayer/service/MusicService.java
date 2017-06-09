@@ -13,6 +13,7 @@ import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.net.Uri;
 import android.os.AsyncTask;
+import android.os.Binder;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.provider.MediaStore;
@@ -25,6 +26,8 @@ import com.chiri.finalmusicplayer.R;
 import com.chiri.finalmusicplayer.activities.MainActivity;
 import com.chiri.finalmusicplayer.model.Codes;
 import com.chiri.finalmusicplayer.model.Song;
+
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -54,19 +57,22 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
         initMediaPlayer();
     }
 
-    @Override
-    public int onStartCommand(Intent intent, int flags, int startId) {
-        SongLoader sl = new SongLoader();
-        this.decodeIntent(intent, sl);
-        broadcaster = LocalBroadcastManager.getInstance(this);
-        //this.registerListeners();
-
-        return START_NOT_STICKY;
-    }
+//    @Override
+//    public int onStartCommand(Intent intent, int flags, int startId) {
+//        this.decodeIntent(intent);
+//
+//        return START_NOT_STICKY;
+//    }
 
     @Nullable
     @Override
     public IBinder onBind(Intent intent) {
+        if(isPlaying){
+            //send info
+            sendResult();
+        } else {
+            decodeIntent(intent);
+        }
         return null;
     }
 
@@ -80,8 +86,9 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
         mediaPlayer.setVolume(75, 75);
     }
 
-    private void decodeIntent(Intent intent, SongLoader sl){
+    private void decodeIntent(Intent intent){
         final Bundle bundle = intent.getExtras();
+        SongLoader sl = new SongLoader();
         switch (bundle.getString(Codes.TAG_TYPE,"NULL")){
             case Codes.TAG_SONG: {
                 MusicService.this.stop();
@@ -171,17 +178,18 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
 
     @Override
     public void onPrepared(MediaPlayer mediaPlayer) {
-       sendResult();
-       Log.i("Player Info","Empieza a reproducir");
-       mediaPlayer.start();
-       isPlaying = true;
-       isPaused = false;
+        Log.i("Player Info","Empieza a reproducir");
+        sendResult();
+        mediaPlayer.start();
+        isPlaying = true;
+        isPaused = false;
     }
 
     public void sendResult() {
-        Intent intent = new Intent(this, MainActivity.class);
-        intent.putExtra(Codes.EXTRA_SONG,songs.get(playingTrack));
+        Intent intent = new Intent(Codes.TAG_SEND_RESULT);
+        intent.putExtra(Codes.TAG_SONG, songs.get(playingTrack));
         broadcaster.sendBroadcast(intent);
+        Log.i("Player Info","Voy a mandar info");
     }
 
     public void stop() {
@@ -400,6 +408,49 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
             }
             Log.d(TAG, Integer.toString(songs.size()));
             MusicService.this.play();
+        }
+    }
+
+    public class MusicServiceBinder extends Binder implements ICallService {
+
+        public MusicService getService() {
+            // Return this instance of LocalService so clients can call public methods
+            return MusicService.this;
+        }
+
+        @Override
+        public void play() throws IOException {
+            MusicService.this.play();
+        }
+
+        @Override
+        public void stop() {
+            MusicService.this.stop();
+        }
+
+        @Override
+        public void pause() {
+            MusicService.this.pause();
+        }
+
+        @Override
+        public void nextSong() {
+            MusicService.this.nextSong();
+        }
+
+        @Override
+        public void previousSong() {
+            MusicService.this.previousSong();
+        }
+
+        @Override
+        public void resume() {
+            MusicService.this.resume();
+        }
+
+        @Override
+        public void addQueue() {
+            MusicService.this.addToQueue();
         }
     }
 }
