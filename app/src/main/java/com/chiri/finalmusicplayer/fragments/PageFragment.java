@@ -29,6 +29,8 @@ import com.chiri.finalmusicplayer.loaders.SongLoader;
 import com.chiri.finalmusicplayer.model.Codes;
 import com.chiri.finalmusicplayer.service.MusicService;
 
+import static android.app.Activity.RESULT_OK;
+
 
 /**
  * Created by chiri on 20/04/17.
@@ -84,12 +86,15 @@ public class PageFragment extends Fragment {
 
                         String albumArt = getAlbumArt(getContext(), artistName);
 
-                        Intent intent = new Intent(getActivity(),MusicService.class);
+                        //Intent intent = new Intent(getActivity(),MusicService.class);
+                        Intent intent = new Intent();
                         intent.putExtra(Codes.TAG_TYPE, Codes.TAG_SONG);
                         intent.putExtra(Codes.TAG_SONG_TITLE, songName);
                         intent.putExtra(Codes.TAG_ARTIST, artistName);
                         intent.putExtra(Codes.TAG_ALBUMART, albumArt);
-                        getActivity().startService(intent);
+                        //getActivity().startService(intent);
+                        getActivity().setResult(RESULT_OK, intent);
+                        getActivity().finish();
                     }
                 });
                 getLoaderManager().initLoader(0, null, new SongLoader(getContext())); //id,args,callback}

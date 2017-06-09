@@ -77,7 +77,7 @@
     </LinearLayout>
 
     <ListView
-        android:id="@+id/playingSongs"
+        android:id="@+id/currentPlayList"
         android:layout_width="300dp"
         android:layout_height="300dp"
         android:layout_above="@+id/playInfo"
