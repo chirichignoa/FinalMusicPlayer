@@ -21,6 +21,7 @@ import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 
 import com.chiri.finalmusicplayer.R;
+import com.chiri.finalmusicplayer.activities.MainActivity;
 import com.chiri.finalmusicplayer.model.Codes;
 import com.chiri.finalmusicplayer.model.Song;
 
@@ -45,13 +46,13 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
     private LocalBroadcastManager broadcaster;
 
     public MusicService() {
-
+        broadcaster = LocalBroadcastManager.getInstance(this);
+        initMediaPlayer();
     }
 
     @Override
     public void onCreate() {
-        broadcaster = LocalBroadcastManager.getInstance(this);
-        initMediaPlayer();
+
     }
 
 //    @Override
@@ -69,7 +70,7 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
         } else {
             decodeIntent(intent);
         }
-        return null;
+        return new MusicServiceBinder();
     }
 
     private void initMediaPlayer() {
@@ -247,8 +248,16 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
         this.nextSong();
     }
 
-    private void addToQueue(){
+    public void addToQueue(){
 
+    }
+
+    public int getCurrentPosition() {
+        return MusicService.mediaPlayer.getCurrentPosition();
+    }
+
+    public void seekTo(int position) {
+        MusicService.mediaPlayer.seekTo(position);
     }
 
     private void startForeground(){
@@ -449,5 +458,17 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
         public void addQueue() {
             MusicService.this.addToQueue();
         }
+
+        @Override
+        public int getCurrentPosition() {
+            return MusicService.this.getCurrentPosition();
+        }
+
+        @Override
+        public void seekTo(int position) {
+            MusicService.this.seekTo(position);
+        }
+
+
     }
 }

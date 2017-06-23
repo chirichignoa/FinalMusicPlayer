@@ -15,4 +15,6 @@ public interface ICallService {
     void previousSong();
     void resume();
     void addQueue();
+    int getCurrentPosition();
+    void seekTo(int position);
 }
