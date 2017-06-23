@@ -4,6 +4,7 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.database.Cursor;
+import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.provider.MediaStore;
 import android.support.v4.app.Fragment;
@@ -83,8 +84,8 @@ public class PageFragment extends Fragment {
                         String songName = ((TextView)view.findViewById(R.id.mainTitle)).getText().toString();
                         String artistName = ((TextView)view.findViewById(R.id.subTitle)).getText().toString();
 
-
-                        String albumArt = getAlbumArt(getContext(), artistName);
+                        String albumName = getAlbumName(getContext(), songName);
+                        String albumArt = getAlbumArt(getContext(), albumName);
 
                         //Intent intent = new Intent(getActivity(),MusicService.class);
                         Intent intent = new Intent();
@@ -109,7 +110,7 @@ public class PageFragment extends Fragment {
                     public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                         String albumName = ((TextView)view.findViewById(R.id.mainTitle)).getText().toString();
                         String artistName = ((TextView)view.findViewById(R.id.subTitle)).getText().toString();
-                        String albumArt = getAlbumArt(getContext(), artistName);
+                        String albumArt = getAlbumArt(getContext(), albumName);
 
                         Intent intent = new Intent(getActivity(),MusicService.class);
                         intent.putExtra(Codes.TAG_TYPE, Codes.TAG_ALBUM);
@@ -144,8 +145,25 @@ public class PageFragment extends Fragment {
         return view;
     }
 
-    private String getAlbumArt(Context c, String selection){
+    private String getAlbumName(Context c, String selection){
+        Cursor cursor = c.getContentResolver().query(
+                MediaStore.Audio.Media.EXTERNAL_CONTENT_URI,
+                new String[] {
+                        MediaStore.Audio.Media.TITLE,
+                        MediaStore.Audio.Media.ALBUM
+                },
+                MediaStore.Audio.Media.TITLE + "=?",
+                new String[] {selection},
+                null);
+        String res = null;
+        if(cursor.moveToFirst()){
+            res = cursor.getString(cursor.getColumnIndex(MediaStore.Audio.Media.ALBUM));
+        }
+        cursor.close();
+        return res;
+    }
 
+    private String getAlbumArt(Context c, String selection){ //from albumName
         Cursor cursor = c.getContentResolver().query(
                 MediaStore.Audio.Albums.EXTERNAL_CONTENT_URI,
                 new String[] {
@@ -162,8 +180,9 @@ public class PageFragment extends Fragment {
             path = cursor.getString(cursor.getColumnIndex(MediaStore.Audio.Albums.ALBUM_ART));
         }
         if(path == null){
-            path = "android.resource://com.chiri.musicplayer/"+ ContextCompat.getDrawable(getActivity(), R.drawable.no_art);
+            path = "android.resource://com.chiri.finalmusicplayer/drawable/no_art";
         }
+        cursor.close();
         return path;
     }
 }

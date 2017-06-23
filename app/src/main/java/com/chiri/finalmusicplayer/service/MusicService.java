@@ -3,8 +3,6 @@ package com.chiri.finalmusicplayer.service;
 import android.app.Notification;
 import android.app.PendingIntent;
 import android.app.Service;
-import android.content.BroadcastReceiver;
-import android.content.Context;
 import android.content.Intent;
 import android.database.Cursor;
 import android.graphics.Bitmap;
@@ -23,7 +21,6 @@ import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 
 import com.chiri.finalmusicplayer.R;
-import com.chiri.finalmusicplayer.activities.MainActivity;
 import com.chiri.finalmusicplayer.model.Codes;
 import com.chiri.finalmusicplayer.model.Song;
 
@@ -68,7 +65,6 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
     @Override
     public IBinder onBind(Intent intent) {
         if(isPlaying){
-            //send info
             sendResult();
         } else {
             decodeIntent(intent);
@@ -189,7 +185,6 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
         Intent intent = new Intent(Codes.TAG_SEND_RESULT);
         intent.putExtra(Codes.TAG_SONG, songs.get(playingTrack));
         broadcaster.sendBroadcast(intent);
-        Log.i("Player Info","Voy a mandar info");
     }
 
     public void stop() {
@@ -342,6 +337,8 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
                                         Long.parseLong(a),//duration,MediaStore.Audio.Media.DURATION,
                                         albumArt,
                                         data.getString(data.getColumnIndex(MediaStore.Audio.Media.DATA)));
+
+                    Log.d("ALBUM-ART", albumArt);
 
                     songs.add(s);
                 }

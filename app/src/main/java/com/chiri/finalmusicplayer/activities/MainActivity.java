@@ -109,8 +109,8 @@ public class MainActivity extends AppCompatActivity {
 
         if(requestCode == CODIGO_LibraryActivity) {
                 if (resultCode == Activity.RESULT_OK) {
-                    String song_name = data.getStringExtra(TAG_SONG_TITLE);
-                    Toast.makeText(MainActivity.this, song_name, Toast.LENGTH_LONG).show();
+//                    String song_name = data.getStringExtra(TAG_SONG_TITLE);
+//                    Toast.makeText(MainActivity.this, song_name, Toast.LENGTH_LONG).show();
                     Intent newIntent = new Intent(this,MusicService.class);
                     Bundle newBundle = data.getExtras();
                     newIntent.putExtras(newBundle);
