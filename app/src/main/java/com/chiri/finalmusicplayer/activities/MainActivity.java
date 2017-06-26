@@ -87,14 +87,16 @@ public class MainActivity extends AppCompatActivity {
         playPause.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if(playing){
-                    playPause.setImageResource(R.drawable.ic_play_arrow);
-                    MainActivity.this.iCallService.pause();
-                    playing = false;
-                } else {
-                    playPause.setImageResource(R.drawable.ic_action_playback_pause);
-                    MainActivity.this.iCallService.resume();
-                    playing = true;
+                if (MainActivity.this.iCallService != null) {
+                    if (playing) {
+                        playPause.setImageResource(R.drawable.ic_play_arrow);
+                        MainActivity.this.iCallService.pause();
+                        playing = false;
+                    } else {
+                        playPause.setImageResource(R.drawable.ic_action_playback_pause);
+                        MainActivity.this.iCallService.resume();
+                        playing = true;
+                    }
                 }
             }
         });
