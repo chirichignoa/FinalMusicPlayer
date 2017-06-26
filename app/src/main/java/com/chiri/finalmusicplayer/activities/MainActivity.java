@@ -35,12 +35,12 @@ import static com.chiri.finalmusicplayer.model.Codes.TAG_SONG_TITLE;
 public class MainActivity extends AppCompatActivity {
 
     private boolean playing = false;
-    private int minutes, seconds, duration;
+    private int duration;
     private ImageButton playPause;
     private ImageView albumArt;
     private TextView songName, artistName, totalTime, currentTime;
     private SeekBar seekBar;
-    private final Handler mHandler = new Handler();
+    //private final Handler mHandler = new Handler();
     private static final int CODIGO_LibraryActivity = 1;
     private MusicService.MusicServiceBinder iCallService;
     private MusicService musicService;
@@ -115,19 +115,14 @@ public class MainActivity extends AppCompatActivity {
                 songName.setText(s.getSongName());
                 albumArt.setImageURI(Uri.parse(s.getAlbumArt()));
                 artistName.setText(s.getArtistName());
-
                 duration = (int) (long) s.getDuration();
-                minutes = duration / (60 * 1000);
-                seconds = (duration / 1000) % 60;
-                totalTime.setText(Integer.toString(minutes) + ":" + Integer.toString(seconds));
+                updateTime(duration, totalTime);
                 setSeekBar(duration);
             }
         };
     }
 
     private void setSeekBar(int totalTime) {
-        minutes = 0;
-        seconds = 0;
         this.seekBar.setMax(totalTime);
         this.seekBar.setProgress(0);
         final Handler mHandler = new Handler();
@@ -136,7 +131,6 @@ public class MainActivity extends AppCompatActivity {
             public void run() {
                 int currentPosition = MainActivity.this.iCallService.getCurrentPosition();
                 seekBar.setProgress(currentPosition);
-                updateTime(0);
                 mHandler.postDelayed(this, 1000);
             }
         });
@@ -145,8 +139,8 @@ public class MainActivity extends AppCompatActivity {
             public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
                 if (fromUser) {
                     MainActivity.this.iCallService.seekTo(progress);
-                    //updateTime();
                 }
+                updateTime(progress, currentTime);
             }
 
             @Override
@@ -161,15 +155,12 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
-    private void updateTime(int posInicial){
+    private void updateTime(int pos_actual, TextView text){
+
         String secondsString, minutesString;
-        int seconds_actual = seconds + posInicial
-        if(seconds + 1 < 60){
-            seconds += 1;
-        } else {
-            minutes +=1;
-            seconds = 0;
-        }
+        int minutes = pos_actual / (60 * 1000);
+        int seconds = (pos_actual / 1000) % 60;
+
         if(seconds < 10){
             secondsString = "0" + seconds;
         }else{
@@ -180,7 +171,8 @@ public class MainActivity extends AppCompatActivity {
         }else{
             minutesString = "" + minutes;
         }
-        currentTime.setText(minutesString + ":" + secondsString);
+
+        text.setText(minutesString + ":" + secondsString);
     }
 
     @Override
