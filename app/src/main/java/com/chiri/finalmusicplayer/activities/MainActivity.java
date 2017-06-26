@@ -136,14 +136,17 @@ public class MainActivity extends AppCompatActivity {
             public void run() {
                 int currentPosition = MainActivity.this.iCallService.getCurrentPosition();
                 seekBar.setProgress(currentPosition);
-                updateTime();
+                updateTime(0);
                 mHandler.postDelayed(this, 1000);
             }
         });
         this.seekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
             @Override
             public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
-                MainActivity.this.iCallService.seekTo(progress);
+                if (fromUser) {
+                    MainActivity.this.iCallService.seekTo(progress);
+                    //updateTime();
+                }
             }
 
             @Override
@@ -158,8 +161,9 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
-    private void updateTime(){
+    private void updateTime(int posInicial){
         String secondsString, minutesString;
+        int seconds_actual = seconds + posInicial
         if(seconds + 1 < 60){
             seconds += 1;
         } else {
