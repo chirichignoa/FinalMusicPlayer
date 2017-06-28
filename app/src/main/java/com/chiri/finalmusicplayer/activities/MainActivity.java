@@ -16,9 +16,11 @@ import android.os.Bundle;
 import android.text.format.DateUtils;
 import android.util.Log;
 import android.view.View;
+import android.widget.ArrayAdapter;
 import android.widget.CursorAdapter;
 import android.widget.ImageButton;
 import android.widget.ImageView;
+import android.widget.ListAdapter;
 import android.widget.ListView;
 import android.widget.SeekBar;
 import android.widget.TextView;
@@ -30,6 +32,8 @@ import com.chiri.finalmusicplayer.model.Codes;
 import com.chiri.finalmusicplayer.model.Song;
 import com.chiri.finalmusicplayer.service.MusicService;
 
+import java.lang.reflect.Array;
+
 import static com.chiri.finalmusicplayer.model.Codes.TAG_SONG_TITLE;
 
 public class MainActivity extends AppCompatActivity {
@@ -40,10 +44,11 @@ public class MainActivity extends AppCompatActivity {
     private ImageView albumArt;
     private TextView songName, artistName, totalTime, currentTime;
     private SeekBar seekBar;
-    //private final Handler mHandler = new Handler();
+    private ListView currentPlayList;
     private static final int CODIGO_LibraryActivity = 1;
     private MusicService.MusicServiceBinder iCallService;
     private MusicService musicService;
+
     private ServiceConnection sc = new ServiceConnection() {
         @Override
         public void onServiceConnected(ComponentName name, IBinder service) {
@@ -63,10 +68,6 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         init();
-
-        ListView currentPlayList = (ListView) findViewById(R.id.currentPlayList);
-        CursorAdapter currentPlayListAdapter = new CurrentPlayListAdapter(this, null, false);
-        currentPlayList.setAdapter(currentPlayListAdapter);
 
         ImageButton libraryButton = (ImageButton) findViewById(R.id.libraryButton);
         libraryButton.setOnClickListener(new View.OnClickListener() {
@@ -107,6 +108,12 @@ public class MainActivity extends AppCompatActivity {
         currentTime = (TextView)findViewById(R.id.currentTime);
         seekBar = (SeekBar)findViewById(R.id.seekBar);
 
+//        Song[] canciones = {new Song("Viva la patria","Peron","Argentina",(long)2,null,null)}; // DE PRUEBA
+        Song[] canciones = {};
+        ListAdapter currentPlayListAdapter = new ArrayAdapter<Song>(this, android.R.layout.simple_list_item_1, canciones);
+        currentPlayList = (ListView) findViewById(R.id.currentPlayList);
+        currentPlayList.setAdapter(currentPlayListAdapter);
+
         receiver = new BroadcastReceiver() {
             @Override
             public void onReceive(Context context, Intent intent) {
@@ -130,6 +137,7 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void run() {
                 int currentPosition = MainActivity.this.iCallService.getCurrentPosition();
+//                 Toast.makeText(MainActivity.this, Integer.toString(currentPosition), Toast.LENGTH_LONG).show();
                 seekBar.setProgress(currentPosition);
                 mHandler.postDelayed(this, 1000);
             }
