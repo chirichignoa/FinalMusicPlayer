@@ -46,7 +46,6 @@ public class SongAdapter extends CursorAdapter  {
     public void bindView(View view, final Context context, Cursor cursor) {
         String song = cursor.getString(cursor.getColumnIndex(MediaStore.Audio.Media.TITLE)); //nombre de la cancion
         Log.d("SONG", song);
-        //VER SI NO HAY CANCIONES PONER MENSAJE
         final TextView songTitle = (TextView) view.findViewById(R.id.mainTitle);
         songTitle.setText(song);
 
@@ -64,7 +63,6 @@ public class SongAdapter extends CursorAdapter  {
                 popup.show();
             }
         });
-        //SACAR DURACION Y PATH (DATA)
 
         String albumName = cursor.getString(cursor.getColumnIndex(MediaStore.Audio.Media.ALBUM)); //nombre del album
         Cursor cursorArt = context.getContentResolver().query(
@@ -78,7 +76,6 @@ public class SongAdapter extends CursorAdapter  {
                 null);
 
         String albumArt = null;
-        String albumID = null;
         if (cursorArt.moveToFirst()) {
             albumArt = cursorArt.getString(cursorArt.getColumnIndex(MediaStore.Audio.Albums.ALBUM_ART));
         }

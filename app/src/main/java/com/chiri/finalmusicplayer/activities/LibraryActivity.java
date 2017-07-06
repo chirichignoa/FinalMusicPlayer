@@ -10,6 +10,8 @@ import android.support.v4.view.ViewPager;
 import android.support.v4.widget.CursorAdapter;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
+import android.view.Menu;
+import android.view.MenuInflater;
 import android.widget.ImageView;
 import android.widget.Toast;
 
@@ -114,5 +116,4 @@ public class LibraryActivity extends AppCompatActivity {
     public void setPlaylistsAdapter(PlaylistsAdapter playlistsAdapter) {
         this.playlistsAdapter = playlistsAdapter;
     }
-
 }
