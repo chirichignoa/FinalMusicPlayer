@@ -87,13 +87,11 @@ public class PageFragment extends Fragment {
                         String albumName = getAlbumName(getContext(), songName);
                         String albumArt = getAlbumArt(getContext(), albumName);
 
-                        //Intent intent = new Intent(getActivity(),MusicService.class);
                         Intent intent = new Intent();
                         intent.putExtra(Codes.TAG_TYPE, Codes.TAG_SONG);
                         intent.putExtra(Codes.TAG_SONG_TITLE, songName);
                         intent.putExtra(Codes.TAG_ARTIST, artistName);
                         intent.putExtra(Codes.TAG_ALBUMART, albumArt);
-                        //getActivity().startService(intent);
                         getActivity().setResult(RESULT_OK, intent);
                         getActivity().finish();
                     }
@@ -117,7 +115,8 @@ public class PageFragment extends Fragment {
                         intent.putExtra(Codes.TAG_ALBUM_TITLE, albumName);
                         intent.putExtra(Codes.TAG_ALBUM_ARTIST, artistName);
                         intent.putExtra(Codes.TAG_ALBUMART, albumArt);
-                        getActivity().startService(intent);
+                        getActivity().setResult(RESULT_OK, intent);
+                        getActivity().finish();
                     }
                 });
                 getLoaderManager().initLoader(0, null, new AlbumLoader(getContext())); //id,args,callback}
@@ -136,7 +135,8 @@ public class PageFragment extends Fragment {
                         Intent intent = new Intent(getActivity(),MusicService.class);
                         intent.putExtra(Codes.TAG_TYPE, Codes.TAG_PLAYLIST);
                         intent.putExtra(Codes.TAG_PLAYLIST_NAME, playlistName);
-                        getActivity().startService(intent);
+                        getActivity().setResult(RESULT_OK, intent);
+                        getActivity().finish();
                     }
                 });
                 getLoaderManager().initLoader(0, null, new PlaylistsLoader(getContext())); //id,args,callback}

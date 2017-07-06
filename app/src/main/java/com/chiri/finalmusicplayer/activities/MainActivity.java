@@ -40,7 +40,7 @@ public class MainActivity extends AppCompatActivity {
 
     private boolean playing = false;
     private int duration;
-    private ImageButton playPause;
+    private ImageButton playPause, nextSong, previousSong;
     private ImageView albumArt;
     private TextView songName, artistName, totalTime, currentTime;
     private SeekBar seekBar;
@@ -85,6 +85,8 @@ public class MainActivity extends AppCompatActivity {
 
     private void init(){
         playPause = (ImageButton)findViewById(R.id.playButton);
+        nextSong = (ImageButton)findViewById(R.id.nextSongButton);
+        previousSong = (ImageButton)findViewById(R.id.previousSongButton);
         playPause.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -99,6 +101,18 @@ public class MainActivity extends AppCompatActivity {
                         playing = true;
                     }
                 }
+            }
+        });
+        nextSong.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                MainActivity.this.iCallService.nextSong();
+            }
+        });
+        previousSong.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                MainActivity.this.iCallService.previousSong();
             }
         });
         songName = (TextView) findViewById(R.id.songName);
@@ -137,7 +151,6 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void run() {
                 int currentPosition = MainActivity.this.iCallService.getCurrentPosition();
-//                 Toast.makeText(MainActivity.this, Integer.toString(currentPosition), Toast.LENGTH_LONG).show();
                 seekBar.setProgress(currentPosition);
                 mHandler.postDelayed(this, 1000);
             }
@@ -164,7 +177,6 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void updateTime(int pos_actual, TextView text){
-
         String secondsString, minutesString;
         int minutes = pos_actual / (60 * 1000);
         int seconds = (pos_actual / 1000) % 60;
@@ -179,7 +191,6 @@ public class MainActivity extends AppCompatActivity {
         }else{
             minutesString = "" + minutes;
         }
-
         text.setText(minutesString + ":" + secondsString);
     }
 
