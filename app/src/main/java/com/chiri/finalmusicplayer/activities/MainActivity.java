@@ -33,6 +33,8 @@ import com.chiri.finalmusicplayer.model.Song;
 import com.chiri.finalmusicplayer.service.MusicService;
 
 import java.lang.reflect.Array;
+import java.util.ArrayList;
+import java.util.List;
 
 import static com.chiri.finalmusicplayer.model.Codes.TAG_SONG_TITLE;
 
@@ -45,6 +47,9 @@ public class MainActivity extends AppCompatActivity {
     private TextView songName, artistName, totalTime, currentTime;
     private SeekBar seekBar;
     private ListView currentPlayList;
+    private CurrentPlayListAdapter adapter;
+    private List<Song> songs = new ArrayList<>();
+
     private static final int CODIGO_LibraryActivity = 1;
     private MusicService.MusicServiceBinder iCallService;
     private MusicService musicService;
@@ -79,8 +84,6 @@ public class MainActivity extends AppCompatActivity {
         });
 
         registerReceiver(receiver, new IntentFilter(Codes.TAG_SEND_RESULT));
-
-
     }
 
     private void init(){
@@ -122,11 +125,9 @@ public class MainActivity extends AppCompatActivity {
         currentTime = (TextView)findViewById(R.id.currentTime);
         seekBar = (SeekBar)findViewById(R.id.seekBar);
 
-//        Song[] canciones = {new Song("Viva la patria","Peron","Argentina",(long)2,null,null)}; // DE PRUEBA
-        Song[] canciones = {};
-        ListAdapter currentPlayListAdapter = new ArrayAdapter<Song>(this, android.R.layout.simple_list_item_1, canciones);
         currentPlayList = (ListView) findViewById(R.id.currentPlayList);
-        currentPlayList.setAdapter(currentPlayListAdapter);
+        this.adapter = new CurrentPlayListAdapter(getApplicationContext(),this.songs);
+        currentPlayList.setAdapter(adapter);
 
         receiver = new BroadcastReceiver() {
             @Override
@@ -136,6 +137,8 @@ public class MainActivity extends AppCompatActivity {
                 songName.setText(s.getSongName());
                 albumArt.setImageURI(Uri.parse(s.getAlbumArt()));
                 artistName.setText(s.getArtistName());
+                MainActivity.this.songs.add(s);
+                //MainActivity.this.adapter.add(s);
                 duration = (int) (long) s.getDuration();
                 updateTime(duration, totalTime);
                 setSeekBar(duration);

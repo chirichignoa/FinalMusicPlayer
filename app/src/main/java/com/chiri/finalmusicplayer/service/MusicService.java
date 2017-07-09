@@ -21,7 +21,6 @@ import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 
 import com.chiri.finalmusicplayer.R;
-import com.chiri.finalmusicplayer.activities.MainActivity;
 import com.chiri.finalmusicplayer.model.Codes;
 import com.chiri.finalmusicplayer.model.Song;
 
