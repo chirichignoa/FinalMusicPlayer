@@ -79,6 +79,7 @@ public class Song implements Parcelable {
                 ", albumName='" + albumName + '\'' +
                 ", duration=" + duration +
                 ", uri='" + uri + '\'' +
+                ", albumArt='" + albumArt + '\'' +
                 '}';
     }
 
