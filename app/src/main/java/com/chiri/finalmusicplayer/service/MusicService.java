@@ -39,7 +39,7 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
 
     private static MediaPlayer mediaPlayer;
     private static String artistName, songName, albumArt, albumName, playlistName;
-    private static List<Song> songs = new ArrayList<>();
+    private static ArrayList<Song> songs = new ArrayList<>();
     private static int playingTrack = 0;
     private static boolean isPlaying = false, isPaused = false;
     private LocalBroadcastManager broadcaster;
@@ -66,6 +66,7 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
     public IBinder onBind(Intent intent) {
         if(isPlaying){
             sendResult();
+            sendCurrentPlaylist();
         }
         decodeIntent(intent);
         return new MusicServiceBinder();
@@ -156,13 +157,14 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
                     slfp.execute(uri, projection, selection, null);
                 }
             }
+            break;
             case Codes.TAG_ADD_SONG_QUEUE: {
                 songName = bundle.getString(Codes.TAG_SONG_TITLE);
                 artistName = bundle.getString(Codes.TAG_ARTIST);
                 albumArt = bundle.getString(Codes.TAG_ALBUMART);
-                Log.i("DoInBack","Anadiendo a cola " + songName);
+                Log.i("DoInBack", "Anadiendo a cola " + songName);
                 Uri uri = MediaStore.Audio.Media.EXTERNAL_CONTENT_URI;
-                String[] projection = { MediaStore.Audio.Media.TITLE,
+                String[] projection = {MediaStore.Audio.Media.TITLE,
                         MediaStore.Audio.Media.ARTIST,
                         MediaStore.Audio.Media.DURATION,
                         MediaStore.Audio.Media.ALBUM,
@@ -170,8 +172,9 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
                 String selection = "IS_MUSIC != 0 AND " + MediaStore.Audio.Media.TITLE + "=? AND "
                         + MediaStore.Audio.Media.ARTIST + "=?";
                 String[] selectionArgs = {songName, artistName};
-                sl.execute(uri,projection,selection,selectionArgs,true);
+                sl.execute(uri, projection, selection, selectionArgs, true);
             }
+            break;
             default:
                 break;
         }
@@ -195,6 +198,7 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
     public void onPrepared(MediaPlayer mediaPlayer) {
         Log.i("Player Info","Empieza a reproducir");
         sendResult();
+        sendCurrentPlaylist();
         mediaPlayer.start();
         isPlaying = true;
         isPaused = false;
@@ -203,6 +207,12 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
     public void sendResult() {
         Intent intent = new Intent(Codes.TAG_SEND_RESULT);
         intent.putExtra(Codes.TAG_SONG, songs.get(playingTrack));
+        broadcaster.sendBroadcast(intent);
+    }
+
+    public void sendCurrentPlaylist() {
+        Intent intent = new Intent(Codes.TAG_SEND_CURRENT_PLAYLIST);
+        intent.putParcelableArrayListExtra(Codes.TAG_CURRENT_PLAYLIST, songs);
         broadcaster.sendBroadcast(intent);
     }
 
@@ -268,6 +278,15 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
 
     public void addToQueue(){
 
+    }
+
+    public void playSelectedSong(int position) {
+        if(playingTrack != position ) {
+            playingTrack = position;
+            Log.i("PlayingTrack", Integer.toString(playingTrack));
+            mediaPlayer.reset();
+            this.play();
+        }
     }
 
     public int getCurrentPosition() {
@@ -369,7 +388,7 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
                     songs.add(s);
                 }
             }
-
+            MusicService.this.sendCurrentPlaylist();
             Log.d(TAG,"Closing Cursor");
             data.close();
             return null;
@@ -419,6 +438,7 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
 
                     songs.add(s);
                 }
+                MusicService.this.sendCurrentPlaylist();
                 Log.d(TAG,"Closing Cursor");
                 cursor.close();
             }
@@ -488,6 +508,9 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
             MusicService.this.seekTo(position);
         }
 
-
+        @Override
+        public void playSelectedSong(int position) {
+            MusicService.this.playSelectedSong(position);
+        }
     }
 }

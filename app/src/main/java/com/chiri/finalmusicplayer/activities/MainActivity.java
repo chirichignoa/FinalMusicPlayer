@@ -7,24 +7,22 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.ServiceConnection;
+import android.graphics.Color;
 import android.net.Uri;
 import android.os.Handler;
 import android.os.IBinder;
 import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-import android.text.format.DateUtils;
 import android.util.Log;
 import android.view.View;
-import android.widget.ArrayAdapter;
-import android.widget.CursorAdapter;
+import android.view.ViewGroup;
+import android.widget.AdapterView;
 import android.widget.ImageButton;
 import android.widget.ImageView;
-import android.widget.ListAdapter;
 import android.widget.ListView;
 import android.widget.SeekBar;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.chiri.finalmusicplayer.R;
 import com.chiri.finalmusicplayer.adapters.CurrentPlayListAdapter;
@@ -32,11 +30,8 @@ import com.chiri.finalmusicplayer.model.Codes;
 import com.chiri.finalmusicplayer.model.Song;
 import com.chiri.finalmusicplayer.service.MusicService;
 
-import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.List;
-
-import static com.chiri.finalmusicplayer.model.Codes.TAG_SONG_TITLE;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -65,7 +60,7 @@ public class MainActivity extends AppCompatActivity {
             iCallService = null;
         }
     };
-    private BroadcastReceiver receiver;
+    private BroadcastReceiver receiverResult, receiverCurrentPlaylist;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -83,7 +78,7 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        registerReceiver(receiver, new IntentFilter(Codes.TAG_SEND_RESULT));
+
     }
 
     private void init(){
@@ -126,10 +121,15 @@ public class MainActivity extends AppCompatActivity {
         seekBar = (SeekBar)findViewById(R.id.seekBar);
 
         currentPlayList = (ListView) findViewById(R.id.currentPlayList);
+        currentPlayList.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                MainActivity.this.iCallService.playSelectedSong(position);
+            }
+        });
         this.adapter = new CurrentPlayListAdapter(getApplicationContext(),this.songs);
         currentPlayList.setAdapter(adapter);
-
-        receiver = new BroadcastReceiver() {
+        receiverResult = new BroadcastReceiver() {
             @Override
             public void onReceive(Context context, Intent intent) {
                 Song s = intent.getExtras().getParcelable(Codes.TAG_SONG);
@@ -137,11 +137,19 @@ public class MainActivity extends AppCompatActivity {
                 songName.setText(s.getSongName());
                 albumArt.setImageURI(Uri.parse(s.getAlbumArt()));
                 artistName.setText(s.getArtistName());
-                MainActivity.this.songs.add(s);
-                //MainActivity.this.adapter.add(s);
                 duration = (int) (long) s.getDuration();
                 updateTime(duration, totalTime);
                 setSeekBar(duration);
+            }
+        };
+        receiverCurrentPlaylist = new BroadcastReceiver() {
+            @Override
+            public void onReceive(Context context, Intent intent) {
+                if( ((ArrayList) intent.getExtras().getParcelableArrayList(Codes.TAG_CURRENT_PLAYLIST)) != null) {
+                    MainActivity.this.songs.clear();
+                    MainActivity.this.songs.addAll((ArrayList) intent.getExtras().getParcelableArrayList(Codes.TAG_CURRENT_PLAYLIST));
+                    Log.i("Result-for-currentPL", MainActivity.this.songs.toString());
+                }
             }
         };
     }
@@ -221,20 +229,25 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onStart() {
         super.onStart();
-        LocalBroadcastManager.getInstance(this).registerReceiver((receiver),
+        LocalBroadcastManager.getInstance(this).registerReceiver((receiverResult),
                 new IntentFilter(Codes.TAG_SEND_RESULT)
+        );
+        LocalBroadcastManager.getInstance(this).registerReceiver((receiverCurrentPlaylist),
+                new IntentFilter(Codes.TAG_SEND_CURRENT_PLAYLIST)
         );
     }
 
     @Override
     protected void onResume() {
         super.onResume();
-        registerReceiver((receiver), new IntentFilter(Codes.TAG_SEND_RESULT));
+        registerReceiver((receiverResult), new IntentFilter(Codes.TAG_SEND_RESULT));
+        registerReceiver((receiverCurrentPlaylist), new IntentFilter(Codes.TAG_SEND_CURRENT_PLAYLIST));
     }
 
     @Override
     protected void onStop() {
-        LocalBroadcastManager.getInstance(this).unregisterReceiver(receiver);
+        LocalBroadcastManager.getInstance(this).unregisterReceiver(receiverResult);
+        LocalBroadcastManager.getInstance(this).unregisterReceiver(receiverCurrentPlaylist);
         super.onStop();
     }
 }
