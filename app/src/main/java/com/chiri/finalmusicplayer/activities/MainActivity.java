@@ -204,10 +204,13 @@ public class MainActivity extends AppCompatActivity {
                 if (resultCode == Activity.RESULT_OK) {
                     Intent newIntent = new Intent(this,MusicService.class);
                     Bundle newBundle = data.getExtras();
+                    Log.i("Code-MainActivity", newBundle.getString(Codes.TAG_TYPE));
                     newIntent.putExtras(newBundle);
                     bindService(newIntent,sc,BIND_AUTO_CREATE);
-                    playPause.setImageResource(R.drawable.ic_action_playback_pause);
-                    this.playing = true;
+                    if(!playing) {
+                        playPause.setImageResource(R.drawable.ic_action_playback_pause);
+                        this.playing = true;
+                    }
                 }
         }
     }

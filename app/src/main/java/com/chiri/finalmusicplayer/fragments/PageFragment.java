@@ -4,14 +4,14 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.database.Cursor;
-import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.provider.MediaStore;
 import android.support.v4.app.Fragment;
-import android.support.v4.content.ContextCompat;
 import android.support.v4.widget.CursorAdapter;
+import android.support.v7.widget.PopupMenu;
 import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
@@ -72,9 +72,33 @@ public class PageFragment extends Fragment {
                              Bundle savedInstanceState) {
         final View view = inflater.inflate(R.layout.fragment_page, container, false);
         listView = (ListView)view.findViewById(R.id.listView);
+
+
+
         switch(mPage){
             case 0:
                 SongAdapter songAdapter = new SongAdapter(getContext(),null,false);
+
+                PopupMenu.OnMenuItemClickListener listener = new PopupMenu.OnMenuItemClickListener() {
+                    @Override
+                    public boolean onMenuItemClick(MenuItem item) {
+                        String songName = ((TextView)view.findViewById(R.id.mainTitle)).getText().toString();
+                        String artistName = ((TextView)view.findViewById(R.id.subTitle)).getText().toString();
+
+                        String albumName = getAlbumName(getContext(), songName);
+                        String albumArt = getAlbumArt(getContext(), albumName);
+
+                        Intent intent = new Intent();
+                        intent.putExtra(Codes.TAG_TYPE, Codes.TAG_ADD_SONG_QUEUE);
+                        intent.putExtra(Codes.TAG_SONG_TITLE, songName);
+                        intent.putExtra(Codes.TAG_ARTIST, artistName);
+                        intent.putExtra(Codes.TAG_ALBUMART, albumArt);
+                        getActivity().setResult(RESULT_OK, intent);
+                        getActivity().finish();
+                        return true;
+                    }
+                };
+                songAdapter.setPopUpMenuListener(listener);
                 ((LibraryActivity)getActivity()).setSongAdapter(songAdapter);
                 listView.setAdapter(songAdapter);
                 listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {

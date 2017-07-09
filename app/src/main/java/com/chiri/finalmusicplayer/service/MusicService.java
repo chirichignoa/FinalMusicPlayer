@@ -67,9 +67,8 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
     public IBinder onBind(Intent intent) {
         if(isPlaying){
             sendResult();
-        } else {
-            decodeIntent(intent);
         }
+        decodeIntent(intent);
         return new MusicServiceBinder();
     }
 
@@ -83,6 +82,12 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
         mediaPlayer.setVolume(75, 75);
     }
 
+    private void getSongsOfBundle(Bundle bundle){
+        songName = bundle.getString(Codes.TAG_SONG_TITLE);
+        artistName = bundle.getString(Codes.TAG_ARTIST);
+        albumArt = bundle.getString(Codes.TAG_ALBUMART);
+    }
+
     private void decodeIntent(Intent intent){
         final Bundle bundle = intent.getExtras();
         SongLoader sl = new SongLoader();
@@ -92,9 +97,7 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
                 songs.clear();
                 playingTrack = 0;
 
-                songName = bundle.getString(Codes.TAG_SONG_TITLE);
-                artistName = bundle.getString(Codes.TAG_ARTIST);
-                albumArt = bundle.getString(Codes.TAG_ALBUMART);
+                getSongsOfBundle(bundle);
                 Uri uri = MediaStore.Audio.Media.EXTERNAL_CONTENT_URI;
                 String[] projection = { MediaStore.Audio.Media.TITLE,
                         MediaStore.Audio.Media.ARTIST,
@@ -104,7 +107,7 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
                 String selection = "IS_MUSIC != 0 AND " + MediaStore.Audio.Media.TITLE + "=? AND "
                         + MediaStore.Audio.Media.ARTIST + "=?";
                 String[] selectionArgs = {songName, artistName};
-                sl.execute(uri,projection,selection,selectionArgs);
+                sl.execute(uri,projection,selection,selectionArgs, false);
             }
             break;
             case Codes.TAG_ALBUM: {
@@ -126,7 +129,7 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
                 };
                 String selection = "IS_MUSIC != 0 AND ALBUM =? ";
                 String[] selectionArgs = {albumName};
-                sl.execute(uri,projection,selection,selectionArgs);
+                sl.execute(uri,projection,selection,selectionArgs,false);
             }
             break;
             case Codes.TAG_PLAYLIST: {
@@ -153,6 +156,22 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
                     SongLoaderFromPlaylist slfp = new SongLoaderFromPlaylist();
                     slfp.execute(uri, projection, selection, null);
                 }
+            }
+            case Codes.TAG_ADD_SONG_QUEUE: {
+                songName = bundle.getString(Codes.TAG_SONG_TITLE);
+                artistName = bundle.getString(Codes.TAG_ARTIST);
+                albumArt = bundle.getString(Codes.TAG_ALBUMART);
+                Log.i("DoInBack","Anadiendo a cola " + songName);
+                Uri uri = MediaStore.Audio.Media.EXTERNAL_CONTENT_URI;
+                String[] projection = { MediaStore.Audio.Media.TITLE,
+                        MediaStore.Audio.Media.ARTIST,
+                        MediaStore.Audio.Media.DURATION,
+                        MediaStore.Audio.Media.ALBUM,
+                        MediaStore.Audio.Media.DATA};
+                String selection = "IS_MUSIC != 0 AND " + MediaStore.Audio.Media.TITLE + "=? AND "
+                        + MediaStore.Audio.Media.ARTIST + "=?";
+                String[] selectionArgs = {songName, artistName};
+                sl.execute(uri,projection,selection,selectionArgs,true);
             }
             default:
                 break;
@@ -321,11 +340,12 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
     }
 
     private class SongLoader extends AsyncTask<Object,Object,Object> {
-
+        private boolean queue = false;
         @Override
         protected Object doInBackground(Object... params) {
+            this.queue = (boolean)params[4];
             //Cargando el cursor
-            Log.d(TAG,"Creating Cursor");
+            Log.d("DoInBack","Creating Cursor");
             Cursor data = MusicService.this.getContentResolver().query(
                     (Uri)params[0],
                     (String[])params[1],
@@ -346,9 +366,7 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
                                         Long.parseLong(a),//duration,MediaStore.Audio.Media.DURATION,
                                         albumArt,
                                         data.getString(data.getColumnIndex(MediaStore.Audio.Media.DATA)));
-
-                    Log.d("ALBUM-ART", albumArt);
-
+                    Log.i("DoInBack", "Song for load: " + s.getSongName());
                     songs.add(s);
                 }
             }
@@ -360,12 +378,14 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
 
         @Override
         protected void onPostExecute(Object o) {
-            Log.d(TAG,"Songs Loaded");
+            Log.i(TAG,"Songs Loaded");
             for(Song s: songs){
-                Log.d(TAG, s.toString());
+                Log.i(TAG, s.toString());
             }
-            Log.d(TAG, Integer.toString(songs.size()));
-            MusicService.this.play();
+            Log.i(TAG, "Songs size" + Integer.toString(songs.size()));
+            if( !this.queue ) {
+                MusicService.this.play();
+            }
         }
     }
 
