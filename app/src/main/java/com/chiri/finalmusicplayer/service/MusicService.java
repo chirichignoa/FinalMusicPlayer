@@ -21,12 +21,12 @@ import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 
 import com.chiri.finalmusicplayer.R;
+import com.chiri.finalmusicplayer.activities.MainActivity;
 import com.chiri.finalmusicplayer.model.Codes;
 import com.chiri.finalmusicplayer.model.Song;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.List;
 
 /**
  * Created by chiri on 26/05/17.
@@ -45,20 +45,21 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
     private LocalBroadcastManager broadcaster;
 
     public MusicService() {
-        broadcaster = LocalBroadcastManager.getInstance(this);
-        initMediaPlayer();
     }
 
     @Override
     public void onCreate() {
-
+        super.onCreate();
+        broadcaster = LocalBroadcastManager.getInstance(this);
+        initMediaPlayer();
     }
 
 //    @Override
 //    public int onStartCommand(Intent intent, int flags, int startId) {
-//        this.decodeIntent(intent);
-//
-//        return START_NOT_STICKY;
+//        if(intent.getStringExtra(Codes.TAG_TYPE).equals(Codes.TAG_ACTION)) {
+//            getForegroundAction(intent);
+//        }
+//        return START_STICKY;
 //    }
 
     @Nullable
@@ -175,6 +176,9 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
                 sl.execute(uri, projection, selection, selectionArgs, true);
             }
             break;
+            case Codes.TAG_ACTION:
+                getForegroundAction(intent);
+                break;
             default:
                 break;
         }
@@ -214,6 +218,20 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
         Intent intent = new Intent(Codes.TAG_SEND_CURRENT_PLAYLIST);
         intent.putParcelableArrayListExtra(Codes.TAG_CURRENT_PLAYLIST, songs);
         broadcaster.sendBroadcast(intent);
+    }
+
+    public void getForegroundAction(Intent intent) {
+        if (intent.getStringExtra(Codes.TAG_ACTION).equals(Codes.ACTION_PREVIOUS)) {
+            this.previousSong();
+        } else if (intent.getStringExtra(Codes.TAG_ACTION).equals(Codes.ACTION_PLAYPAUSE)) {
+            if(isPaused) {
+                this.play();
+            } else {
+                this.pause();
+            }
+        } else if (intent.getStringExtra(Codes.TAG_ACTION).equals(Codes.ACTION_NEXT)) {
+            this.nextSong();
+        }
     }
 
     public void stop() {
@@ -294,37 +312,53 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
     }
 
     private void startForeground(){
-        Intent notificationIntent = new Intent(this, MusicService.class);
+        Intent notificationIntent = new Intent(this, MainActivity.class);
         PendingIntent pendingIntent = PendingIntent.getActivity(this, 0, notificationIntent, 0);
 
         Bitmap icon = BitmapFactory.decodeResource(getResources(),
                 R.mipmap.ic_launcher);
 
         Intent previousIntent = new Intent(this, MusicService.class);
+        previousIntent.putExtra(Codes.TAG_TYPE,Codes.TAG_ACTION);
+        previousIntent.putExtra(Codes.TAG_ACTION,Codes.ACTION_PREVIOUS);
         PendingIntent ppreviousIntent = PendingIntent.getService(this, 0,
                 previousIntent, 0);
 
         Intent playIntent = new Intent(this, MusicService.class);
+        previousIntent.putExtra(Codes.TAG_TYPE,Codes.TAG_ACTION);
+        previousIntent.putExtra(Codes.TAG_ACTION,Codes.ACTION_PLAYPAUSE);
         PendingIntent pplayIntent = PendingIntent.getService(this, 0,
                 playIntent, 0);
 
         Intent nextIntent = new Intent(this, MusicService.class);
+        previousIntent.putExtra(Codes.TAG_TYPE,Codes.TAG_ACTION);
+        previousIntent.putExtra(Codes.TAG_ACTION,Codes.ACTION_NEXT);
         PendingIntent pnextIntent = PendingIntent.getService(this, 0,
                 nextIntent, 0);
 
+        int iconPlayPause;
+        String text;
+        if(isPaused) {
+            iconPlayPause = R.drawable.ic_play_arrow;
+            text = "Play";
+        } else {
+            iconPlayPause = R.drawable.ic_action_playback_pause;
+            text = "Pause";
+        }
+
         Notification notification = new NotificationCompat.Builder(this)
-                .setContentTitle("Music Player")
+                .setContentTitle("Final Music Player")
                 .setTicker("Reproduciendo ")
                 .setContentText(songs.get(playingTrack).getSongName())
                 .setSmallIcon(R.mipmap.ic_launcher)
                 .setLargeIcon(Bitmap.createScaledBitmap(icon, 128, 128, false))
                 .setContentIntent(pendingIntent)
                 .setOngoing(true)
-                .addAction(android.R.drawable.ic_media_previous, "Previous",
+                .addAction(R.drawable.ic_action_playback_prev, "Previous",
                         ppreviousIntent)
-                .addAction(android.R.drawable.ic_media_play, "Play",
+                .addAction(iconPlayPause, text,
                         pplayIntent)
-                .addAction(android.R.drawable.ic_media_next, "Next",
+                .addAction(R.drawable.ic_action_playback_next, "Next",
                         pnextIntent).build();
         startForeground(1, notification);
     }
@@ -451,7 +485,6 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
             MusicService.this.play();
         }
     }
-
     public class MusicServiceBinder extends Binder implements ICallService {
 
         public MusicService getService() {

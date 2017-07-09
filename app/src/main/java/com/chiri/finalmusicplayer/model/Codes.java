@@ -11,6 +11,8 @@ public final class Codes {
     public final static String TAG_SONG = "SONG";
     public final static String TAG_ALBUM = "ALBUM";
     public final static String TAG_PLAYLIST = "PLAYLIST";
+    public final static String TAG_ACTION = "ACTION";
+
 
     public final static String TAG_SONG_TITLE = MediaStore.Audio.Media.TITLE;
     public final static String TAG_ALBUM_TITLE = MediaStore.Audio.AlbumColumns.ALBUM;
@@ -23,8 +25,13 @@ public final class Codes {
     public final static String TAG_SEND_RESULT = "SEND_RESULT";
     public final static String TAG_SEND_CURRENT_PLAYLIST = "SEND_CURRENT_PLAYLIST";
     public final static String TAG_CURRENT_PLAYLIST = "CURRENT_PLAYLIST";
-    public final static String TAG_NUMBER_SONG = "NUMBER_SONG";
-    public final static String TAG_NUMBER = "NUMBER";
+
+
+    public final static String ACTION_FOREGROUND = "FOREGROUND";
+    public final static String ACTION_PREVIOUS = "PREVIOUS";
+    public final static String ACTION_PLAYPAUSE = "PLAYPAUSE";
+    public final static String ACTION_NEXT = "NEXT";
+
 
 
 
