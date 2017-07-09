@@ -90,7 +90,7 @@ public class CurrentPlayListAdapter extends BaseAdapter {
             holder = new ViewHolder();
             holder.title = (TextView) convertView.findViewById(R.id.mainTitle);
             holder.subTitle = (TextView) convertView.findViewById(R.id.subTitle);
-            holder.image = (ImageView) convertView.findViewById(R.id.albumImage);
+            holder.image = (ImageView) convertView.findViewById(R.id.image);
             holder.overflow = (ImageButton) convertView.findViewById(R.id.overflowButton);
             convertView.setTag(holder);
         } else {
@@ -103,10 +103,12 @@ public class CurrentPlayListAdapter extends BaseAdapter {
         holder.title.setText(s.getSongName());
         holder.subTitle.setTextColor(Color.BLACK);
         holder.subTitle.setText(s.getArtistName());
-        //holder.image.setImageURI(Uri.parse(s.getAlbumArt()));
+        holder.image.setImageURI(Uri.parse(s.getAlbumArt()));
         holder.overflow.setVisibility(View.INVISIBLE);
         return convertView;
     }
+
+
 
     public void add(Song s){
         this.songs.add(s);
