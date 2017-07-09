@@ -276,10 +276,6 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
         this.nextSong();
     }
 
-    public void addToQueue(){
-
-    }
-
     public void playSelectedSong(int position) {
         if(playingTrack != position ) {
             playingTrack = position;
@@ -491,11 +487,6 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
         @Override
         public void resume() {
             MusicService.this.resume();
-        }
-
-        @Override
-        public void addQueue() {
-            MusicService.this.addToQueue();
         }
 
         @Override

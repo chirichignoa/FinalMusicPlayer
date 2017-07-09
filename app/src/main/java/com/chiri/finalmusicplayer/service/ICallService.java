@@ -14,7 +14,6 @@ public interface ICallService {
     void nextSong();
     void previousSong();
     void resume();
-    void addQueue();
     int getCurrentPosition();
     void seekTo(int position);
     void playSelectedSong(int position);
