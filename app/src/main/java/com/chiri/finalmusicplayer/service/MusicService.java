@@ -47,12 +47,12 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
 
     public MusicService() {
         broadcaster = LocalBroadcastManager.getInstance(this);
-        initMediaPlayer();
+        //initMediaPlayer();
     }
 
     @Override
     public void onCreate() {
-
+        this.initMediaPlayer();
     }
 
 //    @Override
@@ -62,7 +62,6 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
 //        return START_NOT_STICKY;
 //    }
 
-    @Nullable
     @Override
     public IBinder onBind(Intent intent) {
         if(isPlaying){
@@ -72,6 +71,7 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
         }
         return new MusicServiceBinder();
     }
+
 
     private void initMediaPlayer() {
         mediaPlayer = new MediaPlayer();
