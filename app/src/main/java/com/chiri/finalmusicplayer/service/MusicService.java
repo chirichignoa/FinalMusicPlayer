@@ -62,6 +62,15 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
 //        return START_STICKY;
 //    }
 
+    @Override
+    public int onStartCommand(Intent intent, int flags, int startId) {
+       /* if(intent.getStringExtra(Codes.TAG_TYPE).equals(Codes.TAG_ACTION)) {
+            getForegroundAction(intent);
+        }
+        */
+        return START_STICKY;
+    }
+
     @Nullable
     @Override
     public IBinder onBind(Intent intent) {

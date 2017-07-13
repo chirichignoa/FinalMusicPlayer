@@ -218,6 +218,7 @@ public class MainActivity extends AppCompatActivity {
                     Bundle newBundle = data.getExtras();
                     Log.i("Code-MainActivity", newBundle.getString(Codes.TAG_TYPE));
                     newIntent.putExtras(newBundle);
+                    startService(newIntent);
                     bindService(newIntent,sc,BIND_AUTO_CREATE);
                     if(iniciando){
                         //musicService.play();
