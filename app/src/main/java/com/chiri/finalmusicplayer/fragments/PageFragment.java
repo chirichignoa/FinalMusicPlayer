@@ -28,7 +28,7 @@ import com.chiri.finalmusicplayer.loaders.AlbumLoader;
 import com.chiri.finalmusicplayer.loaders.PlaylistsLoader;
 import com.chiri.finalmusicplayer.loaders.SongLoader;
 import com.chiri.finalmusicplayer.model.Codes;
-import com.chiri.finalmusicplayer.service.MusicService;
+//import com.chiri.finalmusicplayer.service.MusicService;
 
 import static android.app.Activity.RESULT_OK;
 
@@ -47,7 +47,7 @@ public class PageFragment extends Fragment {
     private ListView listView;
     private CursorAdapter adapter;
     private ImageButton overflowButton;
-    private MusicService musicService;
+    //private MusicService musicService;
     private BroadcastReceiver receiver;
 
 
@@ -134,7 +134,7 @@ public class PageFragment extends Fragment {
                         String artistName = ((TextView)view.findViewById(R.id.subTitle)).getText().toString();
                         String albumArt = getAlbumArt(getContext(), albumName);
 
-                        Intent intent = new Intent(getActivity(),MusicService.class);
+                        Intent intent = new Intent(/*getActivity(),MusicService.class*/);
                         intent.putExtra(Codes.TAG_TYPE, Codes.TAG_ALBUM);
                         intent.putExtra(Codes.TAG_ALBUM_TITLE, albumName);
                         intent.putExtra(Codes.TAG_ALBUM_ARTIST, artistName);
@@ -156,7 +156,7 @@ public class PageFragment extends Fragment {
                     public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                         String playlistName = ((TextView)view.findViewById(R.id.mainTitle)).getText().toString();
 
-                        Intent intent = new Intent(getActivity(),MusicService.class);
+                        Intent intent = new Intent(/*getActivity(),MusicService.class*/);
                         intent.putExtra(Codes.TAG_TYPE, Codes.TAG_PLAYLIST);
                         intent.putExtra(Codes.TAG_PLAYLIST_NAME, playlistName);
                         getActivity().setResult(RESULT_OK, intent);

@@ -176,9 +176,9 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
                 sl.execute(uri, projection, selection, selectionArgs, true);
             }
             break;
-            case Codes.TAG_ACTION:
-                getForegroundAction(intent);
-                break;
+            //case Codes.TAG_ACTION:
+            //    getForegroundAction(intent);
+            //    break;
             default:
                 break;
         }

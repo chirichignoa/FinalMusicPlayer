@@ -35,6 +35,7 @@ import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
 
+    private boolean iniciando = true;
     private boolean playing = false;
     private int duration;
     private ImageButton playPause, nextSong, previousSong;
@@ -218,6 +219,9 @@ public class MainActivity extends AppCompatActivity {
                     Log.i("Code-MainActivity", newBundle.getString(Codes.TAG_TYPE));
                     newIntent.putExtras(newBundle);
                     bindService(newIntent,sc,BIND_AUTO_CREATE);
+                    if(iniciando){
+                        //musicService.play();
+                    }
                     if(!playing) {
                         playPause.setImageResource(R.drawable.ic_action_playback_pause);
                         this.playing = true;
@@ -249,5 +253,12 @@ public class MainActivity extends AppCompatActivity {
         LocalBroadcastManager.getInstance(this).unregisterReceiver(receiverResult);
         LocalBroadcastManager.getInstance(this).unregisterReceiver(receiverCurrentPlaylist);
         super.onStop();
+    }
+
+    @Override
+    protected void onPause() {
+        LocalBroadcastManager.getInstance(this).unregisterReceiver(receiverResult);
+        LocalBroadcastManager.getInstance(this).unregisterReceiver(receiverCurrentPlaylist);
+        super.onPause();
     }
 }
