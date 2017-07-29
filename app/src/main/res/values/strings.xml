@@ -10,6 +10,14 @@
     <string name="title_tab3">PLAYLISTS</string>
 
     <string name="action_add_playlist">Anadir a la playlist actual</string>
+    <string name="appwidget_text">EXAMPLE</string>
+    <string name="add_widget">Add widget</string>
+
+    <string name="lyricMessage">Para buscar la letra debe estar reproduciendo una cancion</string>
+    <string name="lyricError">Lo sentimos, ha ocurrido un error</string>
+    <string name="lyricNotFound">Lo sentimos, no pudimos encontrar la letra de esa cancion.</string>
+    <string name="backButton">Volver</string>
+    <string name="lyricButton">Letra</string>
 
 
 

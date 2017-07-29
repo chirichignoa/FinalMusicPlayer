@@ -7,6 +7,25 @@
     tools:context="com.chiri.finalmusicplayer.activities.MainActivity"
     tools:ignore="GradleDependency">
 
+    <TextView
+        android:id="@+id/lyricView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_above="@+id/lyricButton"
+        android:layout_alignParentEnd="true"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentRight="true"
+        android:layout_alignParentStart="true"
+        android:layout_below="@+id/trackInfoLayout"
+        android:layout_marginTop="10dp"
+        android:fadeScrollbars="false"
+        android:inputType="textMultiLine"
+        android:isScrollContainer="false"
+        android:lineSpacingExtra="8sp"
+        android:scrollbars="vertical"
+        android:textAlignment="center"
+        android:textSize="18sp" />
+
     <LinearLayout
         android:id="@+id/trackInfoLayout"
         android:layout_width="match_parent"
@@ -131,11 +150,10 @@
         android:id="@+id/playCommands"
         android:layout_width="match_parent"
         android:layout_height="50dp"
-        android:layout_alignParentBottom="true"
+        android:orientation="horizontal"
+        android:layout_above="@+id/lyricButton"
         android:layout_alignParentLeft="true"
-        android:layout_alignParentStart="true"
-        android:layout_marginBottom="38dp"
-        android:orientation="horizontal">
+        android:layout_alignParentStart="true">
 
         <Space
             android:layout_width="wrap_content"
@@ -183,5 +201,16 @@
             android:layout_weight="0.59" />
 
     </LinearLayout>
+
+    <Button
+        android:id="@+id/lyricButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Letra"
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentStart="true"
+        android:layout_alignParentRight="true"
+        android:layout_alignParentEnd="true" />
 
 </RelativeLayout>
