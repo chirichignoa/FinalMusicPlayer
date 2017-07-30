@@ -68,6 +68,7 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
             getForegroundAction(intent);
         }
         */
+        //kdecodeIntent(intent);
         return START_STICKY;
     }
 
@@ -173,6 +174,8 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
                 artistName = bundle.getString(Codes.TAG_ARTIST);
                 albumArt = bundle.getString(Codes.TAG_ALBUMART);
                 Log.i("DoInBack", "Anadiendo a cola " + songName);
+
+                Log.d("FIXING QUEUE/SERVICE", songName +" "+ artistName);
                 Uri uri = MediaStore.Audio.Media.EXTERNAL_CONTENT_URI;
                 String[] projection = {MediaStore.Audio.Media.TITLE,
                         MediaStore.Audio.Media.ARTIST,
@@ -185,9 +188,9 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
                 sl.execute(uri, projection, selection, selectionArgs, true);
             }
             break;
-            //case Codes.TAG_ACTION:
-            //    getForegroundAction(intent);
-            //    break;
+            case Codes.TAG_ACTION:
+                getForegroundAction(intent);
+                break;
             default:
                 break;
         }
@@ -230,6 +233,7 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
     }
 
     public void getForegroundAction(Intent intent) {
+        Log.d("FOREGROUND", "SABIENDO QUE HAGO");
         if (intent.getStringExtra(Codes.TAG_ACTION).equals(Codes.ACTION_PREVIOUS)) {
             this.previousSong();
         } else if (intent.getStringExtra(Codes.TAG_ACTION).equals(Codes.ACTION_PLAYPAUSE)) {
@@ -340,8 +344,8 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
                 playIntent, 0);
 
         Intent nextIntent = new Intent(this, MusicService.class);
-        previousIntent.putExtra(Codes.TAG_TYPE,Codes.TAG_ACTION);
-        previousIntent.putExtra(Codes.TAG_ACTION,Codes.ACTION_NEXT);
+        nextIntent.putExtra(Codes.TAG_TYPE,Codes.TAG_ACTION);
+        nextIntent.putExtra(Codes.TAG_ACTION,Codes.ACTION_NEXT);
         PendingIntent pnextIntent = PendingIntent.getService(this, 0,
                 nextIntent, 0);
 
@@ -440,7 +444,7 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
                 Log.i(TAG, s.toString());
             }
             Log.i(TAG, "Songs size" + Integer.toString(songs.size()));
-            if( !this.queue ) {
+            if( !this.queue || MusicService.songs.size() == 1 ) { //quiere decir que solo esta la cancion anadida
                 MusicService.this.play();
             }
         }
