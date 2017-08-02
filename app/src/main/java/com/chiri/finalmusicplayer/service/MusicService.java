@@ -4,6 +4,7 @@ import android.app.Notification;
 import android.app.PendingIntent;
 import android.app.Service;
 import android.content.Intent;
+import android.content.res.Configuration;
 import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -54,20 +55,20 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
         initMediaPlayer();
     }
 
-//    @Override
-//    public int onStartCommand(Intent intent, int flags, int startId) {
-//        if(intent.getStringExtra(Codes.TAG_TYPE).equals(Codes.TAG_ACTION)) {
-//            getForegroundAction(intent);
-//        }
-//        return START_STICKY;
-//    }
+    @Override
+    public void onRebind(Intent intent) {
+        sendResult();
+        sendCurrentPlaylist();
+        super.onRebind(intent);
+    }
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-       /* if(intent.getStringExtra(Codes.TAG_TYPE).equals(Codes.TAG_ACTION)) {
-            getForegroundAction(intent);
+        if(isPlaying){
+            sendResult();
+            sendCurrentPlaylist();
         }
-        */
+        decodeIntent(intent);
         //kdecodeIntent(intent);
         return START_STICKY;
     }
@@ -79,7 +80,6 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
             sendResult();
             sendCurrentPlaylist();
         }
-        decodeIntent(intent);
         return new MusicServiceBinder();
     }
 

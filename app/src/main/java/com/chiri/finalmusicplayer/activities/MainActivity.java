@@ -67,6 +67,8 @@ public class MainActivity extends AppCompatActivity {
     private List<Song> songs = new ArrayList<>();
     private Button lyricButton;
 
+    private boolean bounded = false;
+
     private View.OnClickListener hiddenItems, restoreItems;
 
     private static final int CODIGO_LibraryActivity = 1;
@@ -88,10 +90,13 @@ public class MainActivity extends AppCompatActivity {
         public void onServiceConnected(ComponentName name, IBinder service) {
             iCallService = (MusicService.MusicServiceBinder) service;
             musicService = iCallService.getService();
+            bounded = true;
         }
         @Override
         public void onServiceDisconnected(ComponentName name) {
             iCallService = null;
+            musicService = null;
+            bounded = false;
         }
     };
     private BroadcastReceiver receiverResult, receiverCurrentPlaylist;
@@ -105,9 +110,6 @@ public class MainActivity extends AppCompatActivity {
         } else {
             requestPermission(); // Code for permission
         }
-
-
-
     }
 
     private void init(){
@@ -275,7 +277,10 @@ public class MainActivity extends AppCompatActivity {
                     Log.i("Code-MainActivity", newBundle.getString(Codes.TAG_TYPE));
                     newIntent.putExtras(newBundle);
                     startService(newIntent);
-                    bindService(newIntent,sc,BIND_AUTO_CREATE);
+                    if(!bounded) {
+                        bindService(newIntent,sc,BIND_AUTO_CREATE);
+                        bounded = true;
+                    }
                     if(iniciando){
                         //musicService.play();
                     }
@@ -301,21 +306,33 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
-        registerReceiver((receiverResult), new IntentFilter(Codes.TAG_SEND_RESULT));
-        registerReceiver((receiverCurrentPlaylist), new IntentFilter(Codes.TAG_SEND_CURRENT_PLAYLIST));
+//        registerReceiver((receiverResult), new IntentFilter(Codes.TAG_SEND_RESULT));
+//        registerReceiver((receiverCurrentPlaylist), new IntentFilter(Codes.TAG_SEND_CURRENT_PLAYLIST));
+    }
+
+    @Override
+    protected void onRestart() {
+        super.onRestart();
+        Intent a = new Intent(this,MusicService.class);
+        bindService(a,sc,BIND_AUTO_CREATE);
+        bounded = true;
     }
 
     @Override
     protected void onStop() {
         LocalBroadcastManager.getInstance(this).unregisterReceiver(receiverResult);
         LocalBroadcastManager.getInstance(this).unregisterReceiver(receiverCurrentPlaylist);
+        if(bounded) {
+            unbindService(sc);
+            bounded = false;
+        }
         super.onStop();
     }
 
     @Override
     protected void onPause() {
-        LocalBroadcastManager.getInstance(this).unregisterReceiver(receiverResult);
-        LocalBroadcastManager.getInstance(this).unregisterReceiver(receiverCurrentPlaylist);
+//        LocalBroadcastManager.getInstance(this).unregisterReceiver(receiverResult);
+//        LocalBroadcastManager.getInstance(this).unregisterReceiver(receiverCurrentPlaylist);
         super.onPause();
     }
 
