@@ -33,13 +33,13 @@ public class FinalMusicPlayerWidget extends AppWidgetProvider {
     static void updateAppWidget(Context context, AppWidgetManager appWidgetManager,
                                 int appWidgetId) {
 
-        Intent intent = new Intent(context, MainActivity.class);
-        PendingIntent pendingIntent = PendingIntent.getActivity(context, 0, intent, 0);
-
-        RemoteViews views = new RemoteViews(context.getPackageName(), R.layout.final_music_player_widget);
-        views.setOnClickPendingIntent(R.id.widget, pendingIntent);
-
-        appWidgetManager.updateAppWidget(appWidgetId, views);
+//        Intent intent = new Intent(context, MainActivity.class);
+//        PendingIntent pendingIntent = PendingIntent.getActivity(context, 0, intent, 0);
+//
+//        RemoteViews views = new RemoteViews(context.getPackageName(), R.layout.final_music_player_widget);
+//        views.setOnClickPendingIntent(R.id.widget, pendingIntent);
+//
+//        appWidgetManager.updateAppWidget(appWidgetId, views);
     }
 
     @Override
@@ -52,9 +52,9 @@ public class FinalMusicPlayerWidget extends AppWidgetProvider {
 
     @Override
     public void onEnabled(Context context) {
-        LocalBroadcastManager.getInstance(context).registerReceiver((receiverResult),
-                new IntentFilter(Codes.TAG_SEND_RESULT)
-        );
+//        LocalBroadcastManager.getInstance(context).registerReceiver((receiverResult),
+//                new IntentFilter(Codes.TAG_SEND_RESULT)
+//        );
         // Enter relevant functionality for when the first widget is created
 
     }
@@ -62,17 +62,17 @@ public class FinalMusicPlayerWidget extends AppWidgetProvider {
     @Override
     public void onDisabled(Context context) {
         // Enter relevant functionality for when the last widget is disabled
-        LocalBroadcastManager.getInstance(context).unregisterReceiver(receiverResult);
+//        LocalBroadcastManager.getInstance(context).unregisterReceiver(receiverResult);
     }
 
     @Override
     public void onReceive(Context context, Intent intent) {
         super.onReceive(context, intent);
-        Song s = intent.getExtras().getParcelable(Codes.TAG_SONG);
-        Log.i("Cancion recibida", s.getSongName());
-        songName.setText(s.getSongName());
-        albumArt.setImageURI(Uri.parse(s.getAlbumArt()));
-        artistName.setText(s.getArtistName());
+//        Song s = intent.getExtras().getParcelable(Codes.TAG_SONG);
+//        Log.i("Cancion recibida", s.getSongName());
+//        songName.setText(s.getSongName());
+//        albumArt.setImageURI(Uri.parse(s.getAlbumArt()));
+//        artistName.setText(s.getArtistName());
     }
 }
 

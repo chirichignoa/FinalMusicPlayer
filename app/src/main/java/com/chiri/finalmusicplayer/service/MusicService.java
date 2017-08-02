@@ -45,6 +45,7 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
     private static boolean isPlaying = false, isPaused = false;
     private LocalBroadcastManager broadcaster;
 
+
     public MusicService() {
     }
 
@@ -56,30 +57,24 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
     }
 
     @Override
-    public void onRebind(Intent intent) {
-        sendResult();
-        sendCurrentPlaylist();
-        super.onRebind(intent);
-    }
-
-    @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-        if(isPlaying){
-            sendResult();
-            sendCurrentPlaylist();
-        }
+        Log.d("Lifecycle", "onStartCommand");
+//        if(isPlaying){
+//            sendResult();
+//            sendCurrentPlaylist();
+//        }
         decodeIntent(intent);
-        //kdecodeIntent(intent);
         return START_STICKY;
     }
 
     @Nullable
     @Override
     public IBinder onBind(Intent intent) {
-        if(isPlaying){
-            sendResult();
-            sendCurrentPlaylist();
-        }
+        Log.d("Lifecycle", "onBind");
+//        if(isPlaying){
+//            sendResult();
+//            sendCurrentPlaylist();
+//        }
         return new MusicServiceBinder();
     }
 
@@ -191,6 +186,10 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
             case Codes.TAG_ACTION:
                 getForegroundAction(intent);
                 break;
+            case Codes.TAG_SEND_RESULT:
+                sendResult();
+                sendCurrentPlaylist();
+                break;
             default:
                 break;
         }
@@ -221,15 +220,19 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
     }
 
     public void sendResult() {
-        Intent intent = new Intent(Codes.TAG_SEND_RESULT);
-        intent.putExtra(Codes.TAG_SONG, songs.get(playingTrack));
-        broadcaster.sendBroadcast(intent);
+        if(songs.size() > 0) {
+            Intent intent = new Intent(Codes.TAG_SEND_RESULT);
+            intent.putExtra(Codes.TAG_SONG, songs.get(playingTrack));
+            broadcaster.sendBroadcast(intent);
+        }
     }
 
     public void sendCurrentPlaylist() {
-        Intent intent = new Intent(Codes.TAG_SEND_CURRENT_PLAYLIST);
-        intent.putParcelableArrayListExtra(Codes.TAG_CURRENT_PLAYLIST, songs);
-        broadcaster.sendBroadcast(intent);
+        if(songs.size() > 0) {
+            Intent intent = new Intent(Codes.TAG_SEND_CURRENT_PLAYLIST);
+            intent.putParcelableArrayListExtra(Codes.TAG_CURRENT_PLAYLIST, songs);
+            broadcaster.sendBroadcast(intent);
+        }
     }
 
     public void getForegroundAction(Intent intent) {

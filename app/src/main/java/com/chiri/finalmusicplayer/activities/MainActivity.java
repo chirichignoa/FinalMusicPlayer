@@ -103,6 +103,7 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        Log.d("Lifecycle", "onCreate");
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         if (checkPermission()) {
@@ -277,51 +278,67 @@ public class MainActivity extends AppCompatActivity {
                     Log.i("Code-MainActivity", newBundle.getString(Codes.TAG_TYPE));
                     newIntent.putExtras(newBundle);
                     startService(newIntent);
-                    if(!bounded) {
-                        bindService(newIntent,sc,BIND_AUTO_CREATE);
-                        bounded = true;
-                    }
-                    if(iniciando){
-                        //musicService.play();
-                    }
+                    bindService(newIntent,sc,BIND_AUTO_CREATE);
                     if(!playing) {
                         playPause.setImageResource(R.drawable.ic_action_playback_pause);
                         this.playing = true;
                     }
+                    Intent intent = new Intent(this,MusicService.class);
+                    intent.putExtra(Codes.TAG_TYPE,Codes.TAG_SEND_RESULT);
+                    startService(intent);
+                    bindService(intent,sc,BIND_AUTO_CREATE);
                 }
         }
     }
 
     @Override
     protected void onStart() {
+        Log.d("Lifecycle", "onStart");
         super.onStart();
+
+        Log.d("Lifecycle", "OnStart - Bounded: " + bounded);
+
+    }
+
+    @Override
+    protected void onResume() {
         LocalBroadcastManager.getInstance(this).registerReceiver((receiverResult),
                 new IntentFilter(Codes.TAG_SEND_RESULT)
         );
         LocalBroadcastManager.getInstance(this).registerReceiver((receiverCurrentPlaylist),
                 new IntentFilter(Codes.TAG_SEND_CURRENT_PLAYLIST)
         );
-    }
-
-    @Override
-    protected void onResume() {
+        Log.d("Lifecycle", "onResume");
+        if(!bounded) {
+            Intent intent = new Intent(this,MusicService.class);
+            intent.putExtra(Codes.TAG_TYPE,Codes.TAG_SEND_RESULT);
+            startService(intent);
+            bindService(intent,sc,BIND_AUTO_CREATE);
+            bounded = true;
+        }
         super.onResume();
-//        registerReceiver((receiverResult), new IntentFilter(Codes.TAG_SEND_RESULT));
-//        registerReceiver((receiverCurrentPlaylist), new IntentFilter(Codes.TAG_SEND_CURRENT_PLAYLIST));
     }
 
     @Override
     protected void onRestart() {
+        Log.d("Lifecycle", "onRestart");
+//        registerReceiver((receiverCurrentPlaylist), new IntentFilter(Codes.TAG_SEND_CURRENT_PLAYLIST));
+//        registerReceiver((receiverResult), new IntentFilter(Codes.TAG_SEND_RESULT));
+        if(!bounded) {
+            Intent intent = new Intent(this,MusicService.class);
+            intent.putExtra(Codes.TAG_TYPE,Codes.TAG_SEND_RESULT);
+            startService(intent);
+            bindService(intent,sc,BIND_AUTO_CREATE);
+            bounded = true;
+        }
         super.onRestart();
-        Intent a = new Intent(this,MusicService.class);
-        bindService(a,sc,BIND_AUTO_CREATE);
-        bounded = true;
     }
 
     @Override
     protected void onStop() {
-        LocalBroadcastManager.getInstance(this).unregisterReceiver(receiverResult);
-        LocalBroadcastManager.getInstance(this).unregisterReceiver(receiverCurrentPlaylist);
+        Log.d("Lifecycle", "onStop");
+//        LocalBroadcastManager.getInstance(this).unregisterReceiver(receiverResult);
+//        LocalBroadcastManager.getInstance(this).unregisterReceiver(receiverCurrentPlaylist);
         if(bounded) {
             unbindService(sc);
             bounded = false;
@@ -331,8 +348,9 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     protected void onPause() {
-//        LocalBroadcastManager.getInstance(this).unregisterReceiver(receiverResult);
-//        LocalBroadcastManager.getInstance(this).unregisterReceiver(receiverCurrentPlaylist);
+        Log.d("Lifecycle", "onPause");
+        LocalBroadcastManager.getInstance(this).unregisterReceiver(receiverResult);
+        LocalBroadcastManager.getInstance(this).unregisterReceiver(receiverCurrentPlaylist);
         super.onPause();
     }
 
