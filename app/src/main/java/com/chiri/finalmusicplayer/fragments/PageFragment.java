@@ -85,6 +85,8 @@ public class PageFragment extends Fragment {
                         String songName = ((TextView)view.findViewById(R.id.mainTitle)).getText().toString();
                         String artistName = ((TextView)view.findViewById(R.id.subTitle)).getText().toString();
 
+                        Log.d("Selection-Song", songName + " - " + artistName);
+
                         String albumName = getAlbumName(getContext(), songName);
                         String albumArt = getAlbumArt(getContext(), albumName);
 

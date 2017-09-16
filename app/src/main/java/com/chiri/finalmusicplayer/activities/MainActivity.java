@@ -11,6 +11,7 @@ import android.content.ServiceConnection;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.net.Uri;
+import android.os.Environment;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.RemoteException;
@@ -50,15 +51,21 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.OutputStreamWriter;
 import java.util.ArrayList;
 import java.util.List;
+
+import static android.Manifest.permission.INTERNET;
+import static android.Manifest.permission.WRITE_EXTERNAL_STORAGE;
 
 public class MainActivity extends AppCompatActivity {
 
     private boolean iniciando = true;
     private boolean playing = false;
     private int duration;
-    private ImageButton playPause, nextSong, previousSong;
+    private ImageButton playPause, nextSong, previousSong, saveButton;
     private ImageView albumArt;
     private TextView songName, artistName, totalTime, currentTime, lyricView;
     private SeekBar seekBar;
@@ -196,6 +203,41 @@ public class MainActivity extends AppCompatActivity {
         lyricView.setVisibility(View.INVISIBLE);
         lyricView.setMovementMethod(new ScrollingMovementMethod());
         lyricButton = (Button)findViewById(R.id.lyricButton);
+        saveButton = (ImageButton)findViewById(R.id.saveButton);
+        saveButton.setVisibility(View.INVISIBLE);
+        saveButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                String fileName = MainActivity.this.songName.getText().toString().replace(" ","-") + ".txt" ;
+                //File file = new File(getApplicationContext().getFilesDir(), filename);
+                File dir = new File(Environment.getExternalStorageDirectory().getAbsolutePath() + "/Text/" );
+                if (!dir.exists())
+                {
+                    if(!dir.mkdirs()){
+                        Log.e("ALERT","could not create the directories");
+                    }
+                }
+                final File file = new File(dir, fileName);
+                try {
+                    if (!file.exists())
+                    {
+                        file.createNewFile();
+                    }
+                    FileOutputStream fOut = new FileOutputStream(file);
+                    Log.d("File", "File created with name: " + fileName);
+                    Log.d("File", "Writing file");
+                    // myOutWriter.append(MainActivity.this.lyricView.getText().toString().getBytes());
+                    /*myOutWriter.write(MainActivity.this.lyricView.getText().toString());
+                    myOutWriter.close();*/
+                    fOut.write(MainActivity.this.lyricView.getText().toString().getBytes());
+                    fOut.close();
+                    Log.d("File", "Closing file");
+                } catch (Exception e) {
+                    Log.d("File", e.getMessage());
+                }
+            }
+        });
+
         this.hiddenItems = new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -208,6 +250,7 @@ public class MainActivity extends AppCompatActivity {
             public void onClick(View v) {
                 MainActivity.this.setItemsStatus(View.VISIBLE);
                 MainActivity.this.lyricView.setVisibility(View.INVISIBLE);
+                MainActivity.this.saveButton.setVisibility(View.INVISIBLE);
                 MainActivity.this.lyricButton.setText(R.string.lyricButton);
                 MainActivity.this.lyricButton.setOnClickListener(MainActivity.this.hiddenItems);
             }
@@ -358,6 +401,7 @@ public class MainActivity extends AppCompatActivity {
         if(playing){
             this.setItemsStatus(View.INVISIBLE);
             this.lyricView.setVisibility(View.VISIBLE);
+            this.saveButton.setVisibility(View.VISIBLE);
             this.lyricButton.setText(R.string.backButton);
             this.lyricButton.setOnClickListener(this.restoreItems);
             String artistName = this.artistName.getText().toString().replace(" ","-");
@@ -414,8 +458,9 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private boolean checkPermission() {
-        int result = ContextCompat.checkSelfPermission(MainActivity.this, Manifest.permission.INTERNET);
-        if (result == PackageManager.PERMISSION_GRANTED) {
+        int result = ContextCompat.checkSelfPermission(MainActivity.this, INTERNET);
+        int result2 = ContextCompat.checkSelfPermission(MainActivity.this, WRITE_EXTERNAL_STORAGE);
+        if (result == PackageManager.PERMISSION_GRANTED && result2 == PackageManager.PERMISSION_GRANTED) {
             return true;
         } else {
             return false;
@@ -423,10 +468,12 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void requestPermission() {
-        if (ActivityCompat.shouldShowRequestPermissionRationale(MainActivity.this, Manifest.permission.INTERNET)) {
+        if (ActivityCompat.shouldShowRequestPermissionRationale(MainActivity.this, INTERNET)) {
             Toast.makeText(MainActivity.this, "Usar internet permite obtener letras de las canciones. Por favor conceda este permiso en los ajustes.", Toast.LENGTH_LONG).show();
+        } else if (ActivityCompat.shouldShowRequestPermissionRationale(MainActivity.this, WRITE_EXTERNAL_STORAGE)) {
+            Toast.makeText(MainActivity.this, "Usar la escritura permite guardar letras de las canciones. Por favor conceda este permiso en los ajustes.", Toast.LENGTH_LONG).show();
         } else {
-            ActivityCompat.requestPermissions(MainActivity.this, new String[]{android.Manifest.permission.INTERNET}, PERMISSION_REQUEST_CODE);
+            ActivityCompat.requestPermissions(MainActivity.this, new String[]{INTERNET, WRITE_EXTERNAL_STORAGE}, PERMISSION_REQUEST_CODE);
         }
     }
 

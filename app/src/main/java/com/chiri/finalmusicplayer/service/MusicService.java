@@ -28,6 +28,7 @@ import com.chiri.finalmusicplayer.model.Song;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Created by chiri on 26/05/17.
@@ -40,7 +41,7 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
 
     private static MediaPlayer mediaPlayer;
     private static String artistName, songName, albumArt, albumName, playlistName;
-    private static ArrayList<Song> songs = new ArrayList<>();
+    private  ArrayList<Song> songs = new ArrayList<>();
     private static int playingTrack = 0;
     private static boolean isPlaying = false, isPaused = false;
     private LocalBroadcastManager broadcaster;
@@ -170,7 +171,7 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
                 albumArt = bundle.getString(Codes.TAG_ALBUMART);
                 Log.i("DoInBack", "Anadiendo a cola " + songName);
 
-                Log.d("FIXING QUEUE/SERVICE", songName +" "+ artistName);
+                Log.d("Selection-Song", songName +" - "+ artistName);
                 Uri uri = MediaStore.Audio.Media.EXTERNAL_CONTENT_URI;
                 String[] projection = {MediaStore.Audio.Media.TITLE,
                         MediaStore.Audio.Media.ARTIST,
@@ -319,6 +320,10 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
         }
     }
 
+    public List getPlaylist(){
+        return this.songs;
+    }
+
     public int getCurrentPosition() {
         return MusicService.mediaPlayer.getCurrentPosition();
     }
@@ -447,7 +452,7 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
                 Log.i(TAG, s.toString());
             }
             Log.i(TAG, "Songs size" + Integer.toString(songs.size()));
-            if( !this.queue || MusicService.songs.size() == 1 ) { //quiere decir que solo esta la cancion anadida
+            if( !this.queue || songs.size() == 1 ) { //quiere decir que solo esta la cancion anadida
                 MusicService.this.play();
             }
         }
@@ -552,5 +557,8 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
         public void playSelectedSong(int position) {
             MusicService.this.playSelectedSong(position);
         }
+
+        @Override
+        public List getPlaylist() { return MusicService.this.getPlaylist();}
     }
 }
