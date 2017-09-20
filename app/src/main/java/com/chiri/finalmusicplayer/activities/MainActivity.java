@@ -232,6 +232,7 @@ public class MainActivity extends AppCompatActivity {
                     fOut.write(MainActivity.this.lyricView.getText().toString().getBytes());
                     fOut.close();
                     Log.d("File", "Closing file");
+                    Toast.makeText(MainActivity.this.getApplicationContext(),"Se guardo exitosamente la letra, en el directorio: " + file.toString(), Toast.LENGTH_LONG).show();
                 } catch (Exception e) {
                     Log.d("File", e.getMessage());
                 }

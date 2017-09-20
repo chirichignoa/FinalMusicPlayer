@@ -557,8 +557,5 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
         public void playSelectedSong(int position) {
             MusicService.this.playSelectedSong(position);
         }
-
-        @Override
-        public List getPlaylist() { return MusicService.this.getPlaylist();}
     }
 }
