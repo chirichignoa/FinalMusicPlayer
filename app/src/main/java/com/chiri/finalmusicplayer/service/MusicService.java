@@ -3,6 +3,8 @@ package com.chiri.finalmusicplayer.service;
 import android.app.Notification;
 import android.app.PendingIntent;
 import android.app.Service;
+import android.appwidget.AppWidgetManager;
+import android.content.ComponentName;
 import android.content.Intent;
 import android.content.res.Configuration;
 import android.database.Cursor;
@@ -21,6 +23,7 @@ import android.support.v4.app.NotificationCompat;
 import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 
+import com.chiri.finalmusicplayer.PlayerWidget;
 import com.chiri.finalmusicplayer.R;
 import com.chiri.finalmusicplayer.activities.MainActivity;
 import com.chiri.finalmusicplayer.model.Codes;
@@ -190,6 +193,7 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
             case Codes.TAG_SEND_RESULT:
                 sendResult();
                 sendCurrentPlaylist();
+                updateWidget();
                 break;
             default:
                 break;
@@ -214,6 +218,7 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
     public void onPrepared(MediaPlayer mediaPlayer) {
         Log.i("Player Info","Empieza a reproducir");
         sendResult();
+        updateWidget();
         sendCurrentPlaylist();
         mediaPlayer.start();
         isPlaying = true;
@@ -225,6 +230,17 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
             Intent intent = new Intent(Codes.TAG_SEND_RESULT);
             intent.putExtra(Codes.TAG_SONG, songs.get(playingTrack));
             broadcaster.sendBroadcast(intent);
+            //Actualizamos el widget tras la configuración
+//            AppWidgetManager appWidgetManager =
+//                    AppWidgetManager.getInstance(MusicService.this);
+//
+//            ComponentName thisWidget = new ComponentName(getApplicationContext(),
+//                    PlayerWidget.class);
+//            int[] allWidgetIds = appWidgetManager.getAppWidgetIds(thisWidget);
+//            for (int i = 0; i < allWidgetIds.length; i++) {
+//                Log.d("Widget", "Intentando actualizar el widget con id: " + i);
+//                PlayerWidget.updateAppWidget(MusicService.this, appWidgetManager, i);
+//            }
         }
     }
 
@@ -233,6 +249,24 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
             Intent intent = new Intent(Codes.TAG_SEND_CURRENT_PLAYLIST);
             intent.putParcelableArrayListExtra(Codes.TAG_CURRENT_PLAYLIST, songs);
             broadcaster.sendBroadcast(intent);
+        }
+    }
+
+    public void updateWidget() {
+        if(songs.size() > 0) {
+            //Intent intent = new Intent("android.appwidget.action.APPWIDGET_UPDATE");
+            //intent.putExtra(Codes.TAG_SONG, songs.get(playingTrack));
+            AppWidgetManager widgetManager =
+                    AppWidgetManager.getInstance(this.getBaseContext());
+
+            ComponentName thisWidget = new ComponentName(getApplicationContext(),
+                    PlayerWidget.class);
+            int[] allWidgetIds = widgetManager.getAppWidgetIds(thisWidget);
+            Log.d("Widget", "Actualizando widget id: " + allWidgetIds[0]);
+            //intent.putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, allWidgetIds[0]);
+            PlayerWidget.setCurrentSong(songs.get(playingTrack));
+            PlayerWidget.updateAppWidget(this.getBaseContext(),widgetManager,allWidgetIds[0]);
+            //broadcaster.sendBroadcast(intent);
         }
     }
 

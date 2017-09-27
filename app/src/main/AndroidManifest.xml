@@ -29,15 +29,16 @@
             android:name=".service.MusicService"
             android:enabled="true"
             android:exported="false" />
-
-        <receiver android:name=".widget.FinalMusicPlayerWidget">
+        <receiver android:name=".PlayerWidget">
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
             </intent-filter>
-
+            <intent-filter>
+                <action android:name="AUTO_UPDATE" />
+            </intent-filter>
             <meta-data
                 android:name="android.appwidget.provider"
-                android:resource="@xml/final_music_player_widget_info" />
+                android:resource="@xml/player_widget_info" />
         </receiver>
     </application>
 
