@@ -218,7 +218,7 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
     public void onPrepared(MediaPlayer mediaPlayer) {
         Log.i("Player Info","Empieza a reproducir");
         sendResult();
-        updateWidget();
+        //updateWidget();
         sendCurrentPlaylist();
         mediaPlayer.start();
         isPlaying = true;
@@ -262,7 +262,7 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
             ComponentName thisWidget = new ComponentName(getApplicationContext(),
                     PlayerWidget.class);
             int[] allWidgetIds = widgetManager.getAppWidgetIds(thisWidget);
-            Log.d("Widget", "Actualizando widget id: " + allWidgetIds[0]);
+            //Log.d("Widget", "Actualizando widget id: " + allWidgetIds[0]);
             //intent.putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, allWidgetIds[0]);
             PlayerWidget.setCurrentSong(songs.get(playingTrack));
             PlayerWidget.updateAppWidget(this.getBaseContext(),widgetManager,allWidgetIds[0]);

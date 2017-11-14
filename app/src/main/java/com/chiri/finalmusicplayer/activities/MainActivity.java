@@ -90,6 +90,8 @@ public class MainActivity extends AppCompatActivity {
     private MusicService.MusicServiceBinder iCallService;
     private MusicService musicService;
 
+    private BroadcastReceiver receiverResult, receiverCurrentPlaylist;
+
     private static final int PERMISSION_REQUEST_CODE = 1;
 
     private ServiceConnection sc = new ServiceConnection() {
@@ -106,12 +108,12 @@ public class MainActivity extends AppCompatActivity {
             bounded = false;
         }
     };
-    private BroadcastReceiver receiverResult, receiverCurrentPlaylist;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         Log.d("Lifecycle", "onCreate");
         super.onCreate(savedInstanceState);
+
         setContentView(R.layout.activity_main);
         if (checkPermission()) {
             init();
@@ -150,14 +152,20 @@ public class MainActivity extends AppCompatActivity {
         });
         nextSong.setOnClickListener(new View.OnClickListener() {
             @Override
-            public void onClick(View v) {
-                MainActivity.this.iCallService.nextSong();
+            public void onClick(View v)
+            {
+                if (MainActivity.this.iCallService != null) {
+                    MainActivity.this.iCallService.nextSong();
+                }
             }
         });
         previousSong.setOnClickListener(new View.OnClickListener() {
             @Override
-            public void onClick(View v) {
-                MainActivity.this.iCallService.previousSong();
+            public void onClick(View v)
+            {
+                if (MainActivity.this.iCallService != null) {
+                    MainActivity.this.iCallService.previousSong();
+                }
             }
         });
         songName = (TextView) findViewById(R.id.songName);
@@ -180,7 +188,7 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onReceive(Context context, Intent intent) {
                 Song s = intent.getExtras().getParcelable(Codes.TAG_SONG);
-                Log.i("Cancion recibida", s.getSongName());
+                Log.i("Cancion recibida:", s.getSongName());
                 songName.setText(s.getSongName());
                 albumArt.setImageURI(Uri.parse(s.getAlbumArt()));
                 artistName.setText(s.getArtistName());
@@ -346,26 +354,29 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     protected void onResume() {
+        Log.d("Lifecycle", "onResume");
+        super.onResume();
+
         LocalBroadcastManager.getInstance(this).registerReceiver((receiverResult),
                 new IntentFilter(Codes.TAG_SEND_RESULT)
         );
         LocalBroadcastManager.getInstance(this).registerReceiver((receiverCurrentPlaylist),
                 new IntentFilter(Codes.TAG_SEND_CURRENT_PLAYLIST)
         );
-        Log.d("Lifecycle", "onResume");
-        if(!bounded) {
+        /*if(!bounded) {
             Intent intent = new Intent(this,MusicService.class);
             intent.putExtra(Codes.TAG_TYPE,Codes.TAG_SEND_RESULT);
             startService(intent);
             bindService(intent,sc,BIND_AUTO_CREATE);
             bounded = true;
-        }
-        super.onResume();
+        }*/
     }
 
     @Override
     protected void onRestart() {
         Log.d("Lifecycle", "onRestart");
+        super.onRestart();
+
 //        registerReceiver((receiverCurrentPlaylist), new IntentFilter(Codes.TAG_SEND_CURRENT_PLAYLIST));
 //        registerReceiver((receiverResult), new IntentFilter(Codes.TAG_SEND_RESULT));
         if(!bounded) {
@@ -375,7 +386,7 @@ public class MainActivity extends AppCompatActivity {
             bindService(intent,sc,BIND_AUTO_CREATE);
             bounded = true;
         }
-        super.onRestart();
+
     }
 
     @Override
@@ -396,6 +407,19 @@ public class MainActivity extends AppCompatActivity {
         LocalBroadcastManager.getInstance(this).unregisterReceiver(receiverResult);
         LocalBroadcastManager.getInstance(this).unregisterReceiver(receiverCurrentPlaylist);
         super.onPause();
+    }
+
+    @Override
+    protected void onDestroy() {
+        Log.d("Lifecycle", "onDestroy");
+
+//        LocalBroadcastManager.getInstance(this).unregisterReceiver(receiverResult);
+//        LocalBroadcastManager.getInstance(this).unregisterReceiver(receiverCurrentPlaylist);
+        if(bounded) {
+            unbindService(sc);
+            bounded = false;
+        }
+        super.onDestroy();
     }
 
     private void searchLyric() {
