@@ -200,11 +200,11 @@ public class MainActivity extends AppCompatActivity {
         receiverCurrentPlaylist = new BroadcastReceiver() {
             @Override
             public void onReceive(Context context, Intent intent) {
-                if( ((ArrayList) intent.getExtras().getParcelableArrayList(Codes.TAG_CURRENT_PLAYLIST)) != null) {
+                //if( ((ArrayList) intent.getExtras().getParcelableArrayList(Codes.TAG_CURRENT_PLAYLIST)) != null) {
                     MainActivity.this.songs.clear();
                     MainActivity.this.songs.addAll((ArrayList) intent.getExtras().getParcelableArrayList(Codes.TAG_CURRENT_PLAYLIST));
                     Log.i("Result-for-currentPL", MainActivity.this.songs.toString());
-                }
+                //}
             }
         };
         lyricView = (TextView) findViewById(R.id.lyricView);
@@ -335,10 +335,8 @@ public class MainActivity extends AppCompatActivity {
                         playPause.setImageResource(R.drawable.ic_action_playback_pause);
                         this.playing = true;
                     }
-                    Intent intent = new Intent(this,MusicService.class);
-                    intent.putExtra(Codes.TAG_TYPE,Codes.TAG_SEND_RESULT);
-                    startService(intent);
-                    bindService(intent,sc,BIND_AUTO_CREATE);
+                    //Intent intent = new Intent(this,MusicService.class);
+                    //intent.putExtra(Codes.TAG_TYPE,Codes.TAG_SEND_RESULT);
                 }
         }
     }
@@ -379,10 +377,16 @@ public class MainActivity extends AppCompatActivity {
 
 //        registerReceiver((receiverCurrentPlaylist), new IntentFilter(Codes.TAG_SEND_CURRENT_PLAYLIST));
 //        registerReceiver((receiverResult), new IntentFilter(Codes.TAG_SEND_RESULT));
+        /*
         if(!bounded) {
             Intent intent = new Intent(this,MusicService.class);
             intent.putExtra(Codes.TAG_TYPE,Codes.TAG_SEND_RESULT);
             startService(intent);
+
+        }
+        */
+        if(!bounded) {
+            Intent intent = new Intent(this,MusicService.class);
             bindService(intent,sc,BIND_AUTO_CREATE);
             bounded = true;
         }
@@ -404,8 +408,8 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onPause() {
         Log.d("Lifecycle", "onPause");
-        LocalBroadcastManager.getInstance(this).unregisterReceiver(receiverResult);
-        LocalBroadcastManager.getInstance(this).unregisterReceiver(receiverCurrentPlaylist);
+        //LocalBroadcastManager.getInstance(this).unregisterReceiver(receiverResult);
+        //LocalBroadcastManager.getInstance(this).unregisterReceiver(receiverCurrentPlaylist);
         super.onPause();
     }
 
@@ -413,8 +417,8 @@ public class MainActivity extends AppCompatActivity {
     protected void onDestroy() {
         Log.d("Lifecycle", "onDestroy");
 
-//        LocalBroadcastManager.getInstance(this).unregisterReceiver(receiverResult);
-//        LocalBroadcastManager.getInstance(this).unregisterReceiver(receiverCurrentPlaylist);
+        LocalBroadcastManager.getInstance(this).unregisterReceiver(receiverResult);
+        LocalBroadcastManager.getInstance(this).unregisterReceiver(receiverCurrentPlaylist);
         if(bounded) {
             unbindService(sc);
             bounded = false;
