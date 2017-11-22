@@ -62,18 +62,17 @@ import static android.Manifest.permission.WRITE_EXTERNAL_STORAGE;
 
 public class MainActivity extends AppCompatActivity {
 
-    private boolean iniciando = true;
     private boolean playing = false;
     private int duration;
     private ImageButton playPause, nextSong, previousSong, saveButton;
     private ImageView albumArt;
     private TextView songName, artistName, totalTime, currentTime, lyricView;
     private SeekBar seekBar;
-    private ListView currentPlayList;
     private CurrentPlayListAdapter adapter;
     private List<Song> songs = new ArrayList<>();
     private Button lyricButton;
-
+    private ListView currentPlayList;
+    private Song playingTrack;
     private boolean bounded = false;
 
     private View.OnClickListener hiddenItems, restoreItems;
@@ -89,8 +88,6 @@ public class MainActivity extends AppCompatActivity {
 
     private MusicService.MusicServiceBinder iCallService;
     private MusicService musicService;
-
-    private BroadcastReceiver receiverResult, receiverCurrentPlaylist;
 
     private static final int PERMISSION_REQUEST_CODE = 1;
 
@@ -120,6 +117,8 @@ public class MainActivity extends AppCompatActivity {
         } else {
             requestPermission(); // Code for permission
         }
+        registerReceiver(playingTrackReceiver, new IntentFilter(Codes.TAG_SEND_RESULT));
+
     }
 
     private void init(){
@@ -184,29 +183,7 @@ public class MainActivity extends AppCompatActivity {
         });
         this.adapter = new CurrentPlayListAdapter(getApplicationContext(),this.songs);
         currentPlayList.setAdapter(adapter);
-        receiverResult = new BroadcastReceiver() {
-            @Override
-            public void onReceive(Context context, Intent intent) {
-                Song s = intent.getExtras().getParcelable(Codes.TAG_SONG);
-                Log.i("Cancion recibida:", s.getSongName());
-                songName.setText(s.getSongName());
-                albumArt.setImageURI(Uri.parse(s.getAlbumArt()));
-                artistName.setText(s.getArtistName());
-                duration = (int) (long) s.getDuration();
-                updateTime(duration, totalTime);
-                setSeekBar(duration);
-            }
-        };
-        receiverCurrentPlaylist = new BroadcastReceiver() {
-            @Override
-            public void onReceive(Context context, Intent intent) {
-                //if( ((ArrayList) intent.getExtras().getParcelableArrayList(Codes.TAG_CURRENT_PLAYLIST)) != null) {
-                    MainActivity.this.songs.clear();
-                    MainActivity.this.songs.addAll((ArrayList) intent.getExtras().getParcelableArrayList(Codes.TAG_CURRENT_PLAYLIST));
-                    Log.i("Result-for-currentPL", MainActivity.this.songs.toString());
-                //}
-            }
-        };
+
         lyricView = (TextView) findViewById(R.id.lyricView);
         lyricView.setVisibility(View.INVISIBLE);
         lyricView.setMovementMethod(new ScrollingMovementMethod());
@@ -317,6 +294,7 @@ public class MainActivity extends AppCompatActivity {
         text.setText(minutesString + ":" + secondsString);
     }
 
+
     @Override
     public void onActivityResult(int requestCode,
                                  int resultCode,
@@ -335,10 +313,9 @@ public class MainActivity extends AppCompatActivity {
                         playPause.setImageResource(R.drawable.ic_action_playback_pause);
                         this.playing = true;
                     }
-                    //Intent intent = new Intent(this,MusicService.class);
-                    //intent.putExtra(Codes.TAG_TYPE,Codes.TAG_SEND_RESULT);
                 }
         }
+
     }
 
     @Override
@@ -354,50 +331,63 @@ public class MainActivity extends AppCompatActivity {
     protected void onResume() {
         Log.d("Lifecycle", "onResume");
         super.onResume();
-
-        LocalBroadcastManager.getInstance(this).registerReceiver((receiverResult),
-                new IntentFilter(Codes.TAG_SEND_RESULT)
-        );
-        LocalBroadcastManager.getInstance(this).registerReceiver((receiverCurrentPlaylist),
-                new IntentFilter(Codes.TAG_SEND_CURRENT_PLAYLIST)
-        );
-        /*if(!bounded) {
-            Intent intent = new Intent(this,MusicService.class);
-            intent.putExtra(Codes.TAG_TYPE,Codes.TAG_SEND_RESULT);
-            startService(intent);
-            bindService(intent,sc,BIND_AUTO_CREATE);
-            bounded = true;
-        }*/
     }
+
+    private BroadcastReceiver playingTrackReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            playingTrack = intent.getExtras().getParcelable(Codes.TAG_SONG);
+            Log.d("CANCION RECIBIDA",playingTrack.toString());
+            songName.setText(playingTrack.getSongName());
+            albumArt.setImageURI(Uri.parse(playingTrack.getAlbumArt()));
+            artistName.setText(playingTrack.getArtistName());
+            duration = (int) (long) playingTrack.getDuration();
+            updateTime(duration, totalTime);
+            setSeekBar(duration);
+        }
+        };
+// BROADCAST RECEIVERS VIEJOs (SE CONSERVAN HASTA QUE LOS NUEVOS FUNCIONEN 100%):
+/*        getApplicationContext().registerReceiver(new BroadcastReceiver() {
+            @Override
+            public void onReceive(Context context, Intent intent) {
+                Song s = intent.getExtras().getParcelable(Codes.TAG_SONG);
+                Log.i("Cancion recibida:", s.getSongName());
+                songName.setText(s.getSongName());
+                albumArt.setImageURI(Uri.parse(s.getAlbumArt()));
+                artistName.setText(s.getArtistName());
+                duration = (int) (long) s.getDuration();
+                updateTime(duration, totalTime);
+                setSeekBar(duration);
+            }
+        },intent);
+
+        receiverCurrentPlaylist = new BroadcastReceiver() {
+            @Override
+            public void onReceive(Context context, Intent intent) {
+                //if( ((ArrayList) intent.getExtras().getParcelableArrayList(Codes.TAG_CURRENT_PLAYLIST)) != null) {
+                    MainActivity.this.songs.clear();
+                    MainActivity.this.songs.addAll((ArrayList) intent.getExtras().getParcelableArrayList(Codes.TAG_CURRENT_PLAYLIST));
+                    Log.i("Result-for-currentPL", MainActivity.this.songs.toString());
+                //}
+            }
+        };
+*/
 
     @Override
     protected void onRestart() {
         Log.d("Lifecycle", "onRestart");
         super.onRestart();
 
-//        registerReceiver((receiverCurrentPlaylist), new IntentFilter(Codes.TAG_SEND_CURRENT_PLAYLIST));
-//        registerReceiver((receiverResult), new IntentFilter(Codes.TAG_SEND_RESULT));
-        /*
-        if(!bounded) {
-            Intent intent = new Intent(this,MusicService.class);
-            intent.putExtra(Codes.TAG_TYPE,Codes.TAG_SEND_RESULT);
-            startService(intent);
-
-        }
-        */
         if(!bounded) {
             Intent intent = new Intent(this,MusicService.class);
             bindService(intent,sc,BIND_AUTO_CREATE);
             bounded = true;
         }
-
     }
 
     @Override
     protected void onStop() {
         Log.d("Lifecycle", "onStop");
-//        LocalBroadcastManager.getInstance(this).unregisterReceiver(receiverResult);
-//        LocalBroadcastManager.getInstance(this).unregisterReceiver(receiverCurrentPlaylist);
         if(bounded) {
             unbindService(sc);
             bounded = false;
@@ -408,8 +398,6 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onPause() {
         Log.d("Lifecycle", "onPause");
-        //LocalBroadcastManager.getInstance(this).unregisterReceiver(receiverResult);
-        //LocalBroadcastManager.getInstance(this).unregisterReceiver(receiverCurrentPlaylist);
         super.onPause();
     }
 
@@ -417,12 +405,12 @@ public class MainActivity extends AppCompatActivity {
     protected void onDestroy() {
         Log.d("Lifecycle", "onDestroy");
 
-        LocalBroadcastManager.getInstance(this).unregisterReceiver(receiverResult);
-        LocalBroadcastManager.getInstance(this).unregisterReceiver(receiverCurrentPlaylist);
         if(bounded) {
             unbindService(sc);
             bounded = false;
         }
+        unregisterReceiver(playingTrackReceiver);
+
         super.onDestroy();
     }
 
@@ -529,6 +517,5 @@ public class MainActivity extends AppCompatActivity {
         this.seekBar.setVisibility(visibility);;
         this.currentPlayList.setVisibility(visibility);
     }
-
 
 }

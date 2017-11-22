@@ -20,7 +20,6 @@ import android.os.IBinder;
 import android.provider.MediaStore;
 import android.support.annotation.Nullable;
 import android.support.v4.app.NotificationCompat;
-import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 
 import com.chiri.finalmusicplayer.PlayerWidget;
@@ -47,8 +46,6 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
     private  ArrayList<Song> songs = new ArrayList<>();
     private static int playingTrack = 0;
     private static boolean isPlaying = false, isPaused = false;
-    private LocalBroadcastManager broadcaster;
-
 
     public MusicService() {
     }
@@ -56,17 +53,12 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
     @Override
     public void onCreate() {
         super.onCreate();
-        broadcaster = LocalBroadcastManager.getInstance(this);
         initMediaPlayer();
     }
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         Log.d("Lifecycle", "onStartCommand");
-//        if(isPlaying){
-//            sendResult();
-//            sendCurrentPlaylist();
-//        }
         decodeIntent(intent);
         return START_STICKY;
     }
@@ -75,10 +67,6 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
     @Override
     public IBinder onBind(Intent intent) {
         Log.d("Lifecycle", "onBind");
-//        if(isPlaying){
-//            sendResult();
-//            sendCurrentPlaylist();
-//        }
         return new MusicServiceBinder();
     }
 
@@ -190,9 +178,9 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
             case Codes.TAG_ACTION:
                 getForegroundAction(intent);
                 break;
-            case Codes.TAG_SEND_RESULT:
+            case Codes.TAG_SEND_RESULT: //ESTE CASE ME PARECE QUE ESTÁ DE MÁS. LUEGO SE LO REVISA.
                 sendResult();
-                sendCurrentPlaylist();
+                changeCurrentPlaylist();
                 updateWidget();
                 break;
             default:
@@ -219,17 +207,21 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
         Log.i("Player Info","Empieza a reproducir");
         sendResult();
         //updateWidget();
-        sendCurrentPlaylist();
+        changeCurrentPlaylist();
         mediaPlayer.start();
         isPlaying = true;
         isPaused = false;
     }
 
-    public void sendResult() {
+    private void sendResult() {
         if(songs.size() > 0) {
             Intent intent = new Intent(Codes.TAG_SEND_RESULT);
-            intent.putExtra(Codes.TAG_SONG, songs.get(playingTrack));
-            broadcaster.sendBroadcast(intent);
+            Song s = songs.get(playingTrack);
+            Log.d("SONG ANTES DE PUT", s.toString());
+            intent.putExtra(Codes.TAG_SONG, s);
+            sendBroadcast(intent);
+            Log.d("RECEIVER", "SEND BROADCAST");
+
             //Actualizamos el widget tras la configuración
 //            AppWidgetManager appWidgetManager =
 //                    AppWidgetManager.getInstance(MusicService.this);
@@ -244,11 +236,10 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
         }
     }
 
-    public void sendCurrentPlaylist() {
+    private void changeCurrentPlaylist() {
         if(songs.size() > 0) {
             Intent intent = new Intent(Codes.TAG_SEND_CURRENT_PLAYLIST);
             intent.putParcelableArrayListExtra(Codes.TAG_CURRENT_PLAYLIST, songs);
-            broadcaster.sendBroadcast(intent);
         }
     }
 
@@ -266,7 +257,6 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
             //intent.putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, allWidgetIds[0]);
             PlayerWidget.setCurrentSong(songs.get(playingTrack));
             PlayerWidget.updateAppWidget(this.getBaseContext(),widgetManager,allWidgetIds[0]);
-            //broadcaster.sendBroadcast(intent);
         }
     }
 
@@ -291,7 +281,6 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
         playingTrack = 0;
         mediaPlayer.stop();
         mediaPlayer.reset();
-        //stop foreground
     }
 
     public void pause() {
@@ -473,7 +462,7 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
                     songs.add(s);
                 }
             }
-            MusicService.this.sendCurrentPlaylist();
+            MusicService.this.changeCurrentPlaylist();
             Log.d(TAG,"Closing Cursor");
             data.close();
             return null;
@@ -523,7 +512,7 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
 
                     songs.add(s);
                 }
-                MusicService.this.sendCurrentPlaylist();
+                MusicService.this.changeCurrentPlaylist();
                 Log.d(TAG,"Closing Cursor");
                 cursor.close();
             }
