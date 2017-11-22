@@ -30,6 +30,7 @@ public class Song implements Parcelable {
         artistName = in.readString();
         albumName = in.readString();
         albumArt = in.readString();
+        duration = in.readLong();
         uri = in.readString();
     }
 
