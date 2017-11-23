@@ -12,11 +12,11 @@ public class Song implements Parcelable {
     private String songName;
     private String artistName;
     private String albumName;
-    private Long duration;
+    private long duration;
     private String albumArt;
     private String uri; //URI de la cancion en el dispositivo
 
-    public Song(String songName, String artistName, String albumName, Long duration, String albumArt, String uri) {
+    public Song(String songName, String artistName, String albumName, long duration, String albumArt, String uri) {
         this.songName = songName;
         this.artistName = artistName;
         this.albumName = albumName;
@@ -25,16 +25,18 @@ public class Song implements Parcelable {
         this.uri = uri;
     }
 
-    protected Song(Parcel in) {
+    public Song(Parcel in) {
         songName = in.readString();
         artistName = in.readString();
         albumName = in.readString();
-        albumArt = in.readString();
         duration = in.readLong();
+        albumArt = in.readString();
         uri = in.readString();
     }
 
-    public static final Creator<Song> CREATOR = new Creator<Song>() {
+
+    public static final Parcelable.Creator<Song> CREATOR = new Parcelable.Creator<Song>() {
+
         @Override
         public Song createFromParcel(Parcel in) {
             return new Song(in);
@@ -71,7 +73,6 @@ public class Song implements Parcelable {
     }
 
 
-
     @Override
     public String toString() {
         return "Song{" +
@@ -93,8 +94,8 @@ public class Song implements Parcelable {
     public void writeToParcel(Parcel dest, int flags) {
         dest.writeString(songName);
         dest.writeString(artistName);
-        dest.writeLong(duration);
         dest.writeString(albumName);
+        dest.writeLong(duration);
         dest.writeString(albumArt);
         dest.writeString(uri);
     }
