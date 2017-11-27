@@ -62,22 +62,8 @@ import static android.Manifest.permission.WRITE_EXTERNAL_STORAGE;
 
 public class MainActivity extends AppCompatActivity {
 
-    private boolean playing = false;
-    private int duration;
-    private ImageButton playPause, nextSong, previousSong, saveButton;
-    private ImageView albumArt;
-    private TextView songName, artistName, totalTime, currentTime, lyricView;
-    private SeekBar seekBar;
-    private CurrentPlayListAdapter adapter;
-    private List<Song> songs = new ArrayList<>();
-    private Button lyricButton;
-    private ListView currentPlayList;
-    private Song playingTrack;
-    private boolean bounded = false;
-
-    private View.OnClickListener hiddenItems, restoreItems;
-
     private static final int CODIGO_LibraryActivity = 1;
+    private static final int PERMISSION_REQUEST_CODE = 1;
 
     private static final String API_TOKEN = "32ccacf88fc879900f65b8784e7cf927";
     private static final String API_URL = "http://api.vagalume.com.br/search.php?";
@@ -86,10 +72,26 @@ public class MainActivity extends AppCompatActivity {
     private static final String API_PARAMETER_SONG = "mus=";
     private static final String API_PARAMETER_KEY = "apikey=";
 
+
+    private boolean playing = false;
+    private int duration;
+    private ImageButton playPause, nextSong, previousSong, saveButton;
+    private ImageView albumArt;
+    private TextView songName, artistName, totalTime, currentTime, lyricView;
+    private SeekBar seekBar;
+    private CurrentPlayListAdapter adapter;
+    private ListView currentPlayList;
+    private Button lyricButton;
+
+    private static ArrayList<Song> songs = new ArrayList<>();
+    private Song playingTrack;
+    private boolean bounded = false;
+
+    private View.OnClickListener hiddenItems, restoreItems;
+
     private MusicService.MusicServiceBinder iCallService;
     private MusicService musicService;
 
-    private static final int PERMISSION_REQUEST_CODE = 1;
 
     private ServiceConnection sc = new ServiceConnection() {
         @Override
@@ -117,8 +119,8 @@ public class MainActivity extends AppCompatActivity {
         } else {
             requestPermission(); // Code for permission
         }
-        registerReceiver(playingTrackReceiver, new IntentFilter(Codes.TAG_SEND_RESULT));
 
+        registerReceiver(playingTrackReceiver, new IntentFilter(Codes.TAG_SEND_RESULT));
     }
 
     private void init(){
@@ -337,6 +339,13 @@ public class MainActivity extends AppCompatActivity {
         @Override
         public void onReceive(Context context, Intent intent) {
             playingTrack = intent.getExtras().getParcelable(Codes.TAG_SONG);
+            ArrayList<Song> currentPlayList = intent.getParcelableArrayListExtra(Codes.TAG_PLAYLIST);
+
+            Log.d("LISTA RECIBIDA",currentPlayList.toString());
+            songs.clear();
+            songs.addAll(currentPlayList);
+            adapter.notifyDataSetChanged();
+
             Log.d("CANCION RECIBIDA",playingTrack.toString());
             songName.setText(playingTrack.getSongName());
             albumArt.setImageURI(Uri.parse(playingTrack.getAlbumArt()));
@@ -346,32 +355,7 @@ public class MainActivity extends AppCompatActivity {
             setSeekBar(duration);
         }
         };
-// BROADCAST RECEIVERS VIEJOs (SE CONSERVAN HASTA QUE LOS NUEVOS FUNCIONEN 100%):
-/*        getApplicationContext().registerReceiver(new BroadcastReceiver() {
-            @Override
-            public void onReceive(Context context, Intent intent) {
-                Song s = intent.getExtras().getParcelable(Codes.TAG_SONG);
-                Log.i("Cancion recibida:", s.getSongName());
-                songName.setText(s.getSongName());
-                albumArt.setImageURI(Uri.parse(s.getAlbumArt()));
-                artistName.setText(s.getArtistName());
-                duration = (int) (long) s.getDuration();
-                updateTime(duration, totalTime);
-                setSeekBar(duration);
-            }
-        },intent);
 
-        receiverCurrentPlaylist = new BroadcastReceiver() {
-            @Override
-            public void onReceive(Context context, Intent intent) {
-                //if( ((ArrayList) intent.getExtras().getParcelableArrayList(Codes.TAG_CURRENT_PLAYLIST)) != null) {
-                    MainActivity.this.songs.clear();
-                    MainActivity.this.songs.addAll((ArrayList) intent.getExtras().getParcelableArrayList(Codes.TAG_CURRENT_PLAYLIST));
-                    Log.i("Result-for-currentPL", MainActivity.this.songs.toString());
-                //}
-            }
-        };
-*/
 
     @Override
     protected void onRestart() {

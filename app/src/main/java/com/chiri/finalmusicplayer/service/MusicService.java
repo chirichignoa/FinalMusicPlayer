@@ -43,7 +43,7 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
 
     private static MediaPlayer mediaPlayer;
     private static String artistName, songName, albumArt, albumName, playlistName;
-    private  ArrayList<Song> songs = new ArrayList<>();
+    private static ArrayList<Song> songs = new ArrayList<>();
     private static int playingTrack = 0;
     private static boolean isPlaying = false, isPaused = false;
 
@@ -218,7 +218,9 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
             Intent intent = new Intent(Codes.TAG_SEND_RESULT);
             Song s = songs.get(playingTrack);
             Log.d("SONG ANTES DE PUT", s.toString());
+            Log.d("LISTA ANTES DE PUT", songs.toString());
             intent.putExtra(Codes.TAG_SONG, s);
+            intent.putExtra(Codes.TAG_PLAYLIST, songs);
             sendBroadcast(intent);
             Log.d("RECEIVER", "SEND BROADCAST");
 

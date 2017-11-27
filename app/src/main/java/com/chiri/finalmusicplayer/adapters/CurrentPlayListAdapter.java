@@ -48,7 +48,10 @@ public class CurrentPlayListAdapter extends BaseAdapter {
 
     @Override
     public int getCount() {
-        return this.songs.size();
+        if (songs != null) {
+            return this.songs.size();
+        }
+        else return 0;
     }
 
     @Override
