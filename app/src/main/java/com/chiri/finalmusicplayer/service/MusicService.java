@@ -254,11 +254,14 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
 
             ComponentName thisWidget = new ComponentName(getApplicationContext(),
                     PlayerWidget.class);
+
             int[] allWidgetIds = widgetManager.getAppWidgetIds(thisWidget);
-            Log.d("Widget", "Actualizando widget id: " + allWidgetIds[0]);
-            intent.putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, allWidgetIds[0]);
-            PlayerWidget.setCurrentSong(songs.get(playingTrack));
-            PlayerWidget.updateAppWidget(this.getBaseContext(),widgetManager,allWidgetIds[0]);
+            if (allWidgetIds.length > 0){
+                Log.d("Widget", "Actualizando widget id: " + allWidgetIds[0]);
+                intent.putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, allWidgetIds[0]);
+                PlayerWidget.setCurrentSong(songs.get(playingTrack));
+                PlayerWidget.updateAppWidget(this.getBaseContext(),widgetManager,allWidgetIds[0]);
+            }
         }
     }
 

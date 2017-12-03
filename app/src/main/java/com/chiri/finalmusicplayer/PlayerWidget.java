@@ -23,12 +23,13 @@ import static com.chiri.finalmusicplayer.model.Codes.TAG_SEND_RESULT;
  */
 public class PlayerWidget extends AppWidgetProvider {
 
-
     private static Song currentSong;
 
     public static void updateAppWidget(Context context, AppWidgetManager appWidgetManager,
                                 int appWidgetId) {
         Log.d("Widget","Aca en el updateAppWidget");
+        String mensaje = "No hay ninguna cancion reproduciendo";
+
         // Construct the RemoteViews object
         RemoteViews views = new RemoteViews(context.getPackageName(), R.layout.player_widget);
 
@@ -41,8 +42,6 @@ public class PlayerWidget extends AppWidgetProvider {
                         intent, PendingIntent.FLAG_UPDATE_CURRENT);
 
         views.setOnClickPendingIntent(R.id.updateButton, pendingIntent);
-
-        String mensaje = "No hay ninguna cancion reproduciendo";
 
         if(currentSong != null) {
             mensaje = currentSong.getSongName();
@@ -82,7 +81,7 @@ public class PlayerWidget extends AppWidgetProvider {
         Log.d("Widget", "Recibiendo");
         if (intent != null) {
             if (intent.getAction().equals("android.appwidget.action.APPWIDGET_UPDATE")) {
-                //Obtenemos el ID del widget a act`ualizar
+                //Obtenemos el ID del widget a actualizar
                 int widgetId = intent.getIntExtra(
                         AppWidgetManager.EXTRA_APPWIDGET_ID,
                         AppWidgetManager.INVALID_APPWIDGET_ID);
