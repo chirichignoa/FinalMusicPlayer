@@ -17,4 +17,5 @@ public interface ICallService {
     int getCurrentPosition();
     void seekTo(int position);
     void playSelectedSong(int position);
+    void getResult();
 }

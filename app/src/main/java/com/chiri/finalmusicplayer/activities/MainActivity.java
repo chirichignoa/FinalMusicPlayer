@@ -85,12 +85,12 @@ public class MainActivity extends AppCompatActivity {
 
     private static ArrayList<Song> songs = new ArrayList<>();
     private Song playingTrack;
-    private boolean bounded = false;
 
     private View.OnClickListener hiddenItems, restoreItems;
 
     private MusicService.MusicServiceBinder iCallService;
     private MusicService musicService;
+    private boolean bounded = false;
 
 
     private ServiceConnection sc = new ServiceConnection() {
@@ -99,6 +99,7 @@ public class MainActivity extends AppCompatActivity {
             iCallService = (MusicService.MusicServiceBinder) service;
             musicService = iCallService.getService();
             bounded = true;
+            iCallService.getResult();
         }
         @Override
         public void onServiceDisconnected(ComponentName name) {
@@ -110,8 +111,9 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        Log.d("Lifecycle", "onCreate");
+        Log.d("Lifecycle", "onCreate MainActivity");
         super.onCreate(savedInstanceState);
+        Log.d("Lifecycle", "onCreate Bounded:"+bounded);
 
         setContentView(R.layout.activity_main);
         if (checkPermission()) {
@@ -120,7 +122,12 @@ public class MainActivity extends AppCompatActivity {
             requestPermission(); // Code for permission
         }
 
+        Intent checkService = new Intent(this,MusicService.class);
+        bounded = bindService(checkService,sc,0);
+
         registerReceiver(playingTrackReceiver, new IntentFilter(Codes.TAG_SEND_RESULT));
+        Log.d("Lifecycle", "SALIENDO ONCREATE Bounded:"+bounded);
+
     }
 
     private void init(){
@@ -310,7 +317,7 @@ public class MainActivity extends AppCompatActivity {
                     Log.i("Code-MainActivity", newBundle.getString(Codes.TAG_TYPE));
                     newIntent.putExtras(newBundle);
                     startService(newIntent);
-                    bindService(newIntent,sc,BIND_AUTO_CREATE);
+                    bindService(newIntent,sc,0);
                     if(!playing) {
                         playPause.setImageResource(R.drawable.ic_action_playback_pause);
                         this.playing = true;
@@ -333,6 +340,12 @@ public class MainActivity extends AppCompatActivity {
     protected void onResume() {
         Log.d("Lifecycle", "onResume");
         super.onResume();
+
+        registerReceiver(playingTrackReceiver, new IntentFilter(Codes.TAG_SEND_RESULT));
+        Log.d("Lifecycle", "OnResume - Bounded: " + bounded);
+        Log.d("Lifecycle", "SALIENDO ONRESUME SERVICE:"+musicService);
+        Log.d("Lifecycle", "SALIENDO ONRESUME SERVICE:"+iCallService);
+
     }
 
     private BroadcastReceiver playingTrackReceiver = new BroadcastReceiver() {
@@ -361,33 +374,43 @@ public class MainActivity extends AppCompatActivity {
     protected void onRestart() {
         Log.d("Lifecycle", "onRestart");
         super.onRestart();
+        Log.d("Lifecycle", "OnReStart - Bounded: " + bounded);
+
 
         if(!bounded) {
             Intent intent = new Intent(this,MusicService.class);
-            bindService(intent,sc,BIND_AUTO_CREATE);
-            bounded = true;
+            bounded = bindService(intent,sc,0);
         }
+        Log.d("Lifecycle", "SALIENDO ONRESTART Bounded: " + bounded);
     }
 
     @Override
     protected void onStop() {
         Log.d("Lifecycle", "onStop");
+        Log.d("Lifecycle", "OnStop - Bounded: " + bounded);
+
         if(bounded) {
             unbindService(sc);
             bounded = false;
         }
+        Log.d("Lifecycle", "SALIENDO ONSTOP - Bounded: " + bounded);
         super.onStop();
+
     }
 
     @Override
     protected void onPause() {
         Log.d("Lifecycle", "onPause");
+        Log.d("Lifecycle", "OnPause - Bounded: " + bounded);
+
         super.onPause();
     }
 
     @Override
     protected void onDestroy() {
         Log.d("Lifecycle", "onDestroy");
+        Log.d("Lifecycle", "OnDestroy - Bounded: " + bounded);
+
 
         if(bounded) {
             unbindService(sc);
@@ -395,6 +418,7 @@ public class MainActivity extends AppCompatActivity {
         }
         unregisterReceiver(playingTrackReceiver);
 
+        Log.d("Lifecycle", "SALIENDO ONDESTROY - Bounded: " + bounded);
         super.onDestroy();
     }
 

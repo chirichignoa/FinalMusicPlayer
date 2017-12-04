@@ -52,13 +52,14 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
 
     @Override
     public void onCreate() {
+        Log.d("Lifecycle", "SERVICE: onCreate");
         super.onCreate();
         initMediaPlayer();
     }
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-        Log.d("Lifecycle", "onStartCommand");
+        Log.d("Lifecycle", "SERVICE: onStartCommand");
         decodeIntent(intent);
         return START_STICKY;
     }
@@ -66,7 +67,7 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
     @Nullable
     @Override
     public IBinder onBind(Intent intent) {
-        Log.d("Lifecycle", "onBind");
+        Log.d("Lifecycle", "SERVICE: onBind");
         return new MusicServiceBinder();
     }
 
@@ -205,6 +206,7 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
     @Override
     public void onPrepared(MediaPlayer mediaPlayer) {
         Log.i("Player Info","Empieza a reproducir");
+        Log.d("Lifecycle", "SERVICE: onPrepared");
         sendResult();
         updateWidget();
         changeCurrentPlaylist();
@@ -297,6 +299,7 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
     public void resume(){
         Log.i("Player Info","Resumiendo");
         this.mediaPlayer.start();
+        isPaused = false;
     }
 
     public void nextSong() {
@@ -336,6 +339,8 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
     @Override
     public void onCompletion(MediaPlayer mediaPlayer) {
         Log.i("Player Info","Termino la cancion numero: "+ playingTrack);
+        Log.d("Lifecycle", "SERVICE: onCompletion");
+
         this.nextSong();
     }
 
@@ -361,6 +366,8 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
     }
 
     private void startForeground(){
+        Log.d("Lifecycle", "SERVICE: startForeground");
+
         Intent notificationIntent = new Intent(this, MainActivity.class);
         PendingIntent pendingIntent = PendingIntent.getActivity(this, 0, notificationIntent, 0);
 
@@ -475,7 +482,9 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
 
         @Override
         protected void onPostExecute(Object o) {
+            Log.d("Lifecycle", "SERVICE: onPostExecute");
             Log.i(TAG,"Songs Loaded");
+
             for(Song s: songs){
                 Log.i(TAG, s.toString());
             }
@@ -534,6 +543,7 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
             MusicService.this.play();
         }
     }
+
     public class MusicServiceBinder extends Binder implements ICallService {
 
         public MusicService getService() {
@@ -584,6 +594,11 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
         @Override
         public void playSelectedSong(int position) {
             MusicService.this.playSelectedSong(position);
+        }
+
+        @Override
+        public void getResult() {
+            MusicService.this.sendResult();
         }
     }
 }
