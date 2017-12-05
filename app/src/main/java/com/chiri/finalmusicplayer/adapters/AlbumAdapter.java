@@ -52,17 +52,6 @@ public class AlbumAdapter extends CursorAdapter {
         TextView artistName = (TextView)view.findViewById(R.id.subTitle);
         artistName.setText(artist);
 
-        ImageButton overflowButton = (ImageButton) view.findViewById(R.id.overflowButton);
-        overflowButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                PopupMenu popup = new PopupMenu(context, v);
-                MenuInflater inflater = popup.getMenuInflater();
-                inflater.inflate(R.menu.actions, popup.getMenu());
-                popup.show();
-            }
-        });
-
         String albumArt = cursor.getString(cursor.getColumnIndex(MediaStore.Audio.AlbumColumns.ALBUM_ART)); //art del album
         //System.out.println(album+" "+albumArt);
 

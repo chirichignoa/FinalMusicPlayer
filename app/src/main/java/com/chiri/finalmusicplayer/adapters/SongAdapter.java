@@ -85,18 +85,6 @@ public class SongAdapter extends CursorAdapter  {
             image.setImageResource(R.drawable.no_art);
         }
         final String path = albumArt;
-        ImageButton overflowButton = (ImageButton) view.findViewById(R.id.overflowButton);
-        overflowButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                PopupMenu popup = new PopupMenu(context, v);
-                popup.setOnMenuItemClickListener(SongAdapter.this.listener);
-                Log.i("Listener-SongAdapter", "Listener Seteadp");
-                MenuInflater inflater = popup.getMenuInflater();
-                inflater.inflate(R.menu.actions, popup.getMenu());
-                popup.show();
-            }
-        });
     }
 
     public void setPopUpMenuListener(PopupMenu.OnMenuItemClickListener listener) {

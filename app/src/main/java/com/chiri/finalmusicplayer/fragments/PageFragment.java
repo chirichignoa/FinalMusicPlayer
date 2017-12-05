@@ -18,6 +18,7 @@ import android.widget.AdapterView;
 import android.widget.ImageButton;
 import android.widget.ListView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.chiri.finalmusicplayer.activities.LibraryActivity;
 import com.chiri.finalmusicplayer.R;
@@ -78,14 +79,13 @@ public class PageFragment extends Fragment {
         switch(mPage){
             case 0:
                 SongAdapter songAdapter = new SongAdapter(getContext(),null,false);
-
-                PopupMenu.OnMenuItemClickListener listener = new PopupMenu.OnMenuItemClickListener() {
+                ((LibraryActivity)getActivity()).setSongAdapter(songAdapter);
+                listView.setAdapter(songAdapter);
+                listView.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
                     @Override
-                    public boolean onMenuItemClick(MenuItem item) {
+                    public boolean onItemLongClick(AdapterView<?> adapterView, View view, int i, long l) {
                         String songName = ((TextView)view.findViewById(R.id.mainTitle)).getText().toString();
                         String artistName = ((TextView)view.findViewById(R.id.subTitle)).getText().toString();
-
-                        Log.d("Selection-Song", songName + " - " + artistName);
 
                         String albumName = getAlbumName(getContext(), songName);
                         String albumArt = getAlbumArt(getContext(), albumName);
@@ -96,13 +96,12 @@ public class PageFragment extends Fragment {
                         intent.putExtra(Codes.TAG_ARTIST, artistName);
                         intent.putExtra(Codes.TAG_ALBUMART, albumArt);
                         getActivity().setResult(RESULT_OK, intent);
+                        Toast.makeText(getContext(),"Agregando "+ songName + " a la playlist actual",
+                                Toast.LENGTH_SHORT).show();
                         getActivity().finish();
                         return true;
                     }
-                };
-                songAdapter.setPopUpMenuListener(listener);
-                ((LibraryActivity)getActivity()).setSongAdapter(songAdapter);
-                listView.setAdapter(songAdapter);
+                });
                 listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
                     @Override
                     public void onItemClick(AdapterView<?> parent, View view, int position, long id) {

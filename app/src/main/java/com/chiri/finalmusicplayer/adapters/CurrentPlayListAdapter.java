@@ -34,7 +34,6 @@ public class CurrentPlayListAdapter extends BaseAdapter {
         TextView title;
         TextView subTitle;
         ImageView image;
-        ImageButton overflow;
     }
 
     private List<Song> songs = new ArrayList<>();
@@ -94,7 +93,6 @@ public class CurrentPlayListAdapter extends BaseAdapter {
             holder.title = (TextView) convertView.findViewById(R.id.mainTitle);
             holder.subTitle = (TextView) convertView.findViewById(R.id.subTitle);
             holder.image = (ImageView) convertView.findViewById(R.id.image);
-            holder.overflow = (ImageButton) convertView.findViewById(R.id.overflowButton);
             convertView.setTag(holder);
         } else {
             holder = (ViewHolder) convertView.getTag();
@@ -107,7 +105,6 @@ public class CurrentPlayListAdapter extends BaseAdapter {
         holder.subTitle.setTextColor(Color.BLACK);
         holder.subTitle.setText(s.getArtistName());
         holder.image.setImageURI(Uri.parse(s.getAlbumArt()));
-        holder.overflow.setVisibility(View.INVISIBLE);
         return convertView;
     }
 
