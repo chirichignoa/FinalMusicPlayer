@@ -492,6 +492,7 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
             if( !this.queue || songs.size() == 1 ) { //quiere decir que solo esta la cancion anadida
                 MusicService.this.play();
             }
+            sendResult();
         }
     }
 

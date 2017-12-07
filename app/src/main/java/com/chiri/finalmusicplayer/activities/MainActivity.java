@@ -111,9 +111,8 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        Log.d("Lifecycle", "onCreate MainActivity");
+        Log.d("Lifecycle", "onCreate MainActivity Bounded: "+bounded);
         super.onCreate(savedInstanceState);
-        Log.d("Lifecycle", "onCreate Bounded:"+bounded);
 
         setContentView(R.layout.activity_main);
         if (checkPermission()) {
@@ -338,14 +337,13 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     protected void onResume() {
-        Log.d("Lifecycle", "onResume");
+        Log.d("Lifecycle", "onResume - Bounded: " + bounded);
         super.onResume();
 
         registerReceiver(playingTrackReceiver, new IntentFilter(Codes.TAG_SEND_RESULT));
-        Log.d("Lifecycle", "OnResume - Bounded: " + bounded);
+
         Log.d("Lifecycle", "SALIENDO ONRESUME SERVICE:"+musicService);
         Log.d("Lifecycle", "SALIENDO ONRESUME SERVICE:"+iCallService);
-
     }
 
     private BroadcastReceiver playingTrackReceiver = new BroadcastReceiver() {
