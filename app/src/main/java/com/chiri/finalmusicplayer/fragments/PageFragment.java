@@ -152,7 +152,7 @@ public class PageFragment extends Fragment {
                         String albumArt = getAlbumArt(getContext(), albumName);
 
                         Intent intent = new Intent(/*getActivity(),MusicService.class*/);
-                        intent.putExtra(Codes.TAG_TYPE, Codes.TAG_ALBUM);
+                        intent.putExtra(Codes.TAG_TYPE, Codes.TAG_ADD_ALBUM_QUEUE);
                         intent.putExtra(Codes.TAG_ALBUM_TITLE, albumName);
                         intent.putExtra(Codes.TAG_ALBUM_ARTIST, artistName);
                         intent.putExtra(Codes.TAG_ALBUMART, albumArt);

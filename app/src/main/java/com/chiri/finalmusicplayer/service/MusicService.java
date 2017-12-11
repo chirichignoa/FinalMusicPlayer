@@ -174,6 +174,30 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
                         + MediaStore.Audio.Media.ARTIST + "=?";
                 String[] selectionArgs = {songName, artistName};
                 sl.execute(uri, projection, selection, selectionArgs, true);
+
+
+            }
+            break;
+            case Codes.TAG_ADD_ALBUM_QUEUE: {
+                //MusicService.this.stop();
+                //songs.clear();
+                //playingTrack = 0;
+
+                albumName = bundle.getString(Codes.TAG_ALBUM_TITLE);
+                artistName = bundle.getString(Codes.TAG_ALBUM_ARTIST);
+                albumArt = bundle.getString(Codes.TAG_ALBUMART);
+                Uri uri = MediaStore.Audio.Media.EXTERNAL_CONTENT_URI;
+                String[] projection = {
+                        MediaStore.Audio.Media.TITLE,
+                        MediaStore.Audio.Media.ARTIST,
+                        MediaStore.Audio.Media.DATA,
+                        MediaStore.Audio.Media.DISPLAY_NAME,
+                        MediaStore.Audio.Media.DURATION,
+                        MediaStore.Audio.Media.ALBUM,
+                };
+                String selection = "IS_MUSIC != 0 AND ALBUM =? ";
+                String[] selectionArgs = {albumName};
+                sl.execute(uri,projection,selection,selectionArgs,true);
             }
             break;
             case Codes.TAG_ACTION:

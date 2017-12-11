@@ -22,6 +22,7 @@ public final class Codes {
     public final static String TAG_PLAYLIST_NAME = MediaStore.Audio.Playlists.NAME;
 
     public final static String TAG_ADD_SONG_QUEUE = "ADD_SONG_QUEUE";
+    public final static String TAG_ADD_ALBUM_QUEUE = "ADD_ALBUM_QUEUE";
     public final static String TAG_SEND_RESULT = "SEND_RESULT";
     public final static String TAG_SEND_CURRENT_PLAYLIST = "SEND_CURRENT_PLAYLIST";
     public final static String TAG_CURRENT_PLAYLIST = "CURRENT_PLAYLIST";
