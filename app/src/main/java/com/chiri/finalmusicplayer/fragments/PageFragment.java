@@ -144,6 +144,25 @@ public class PageFragment extends Fragment {
                         getActivity().finish();
                     }
                 });
+                listView.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
+                    @Override
+                    public boolean onItemLongClick(AdapterView<?> adapterView, View view, int i, long l) {
+                        String albumName = ((TextView)view.findViewById(R.id.mainTitle)).getText().toString();
+                        String artistName = ((TextView)view.findViewById(R.id.subTitle)).getText().toString();
+                        String albumArt = getAlbumArt(getContext(), albumName);
+
+                        Intent intent = new Intent(/*getActivity(),MusicService.class*/);
+                        intent.putExtra(Codes.TAG_TYPE, Codes.TAG_ALBUM);
+                        intent.putExtra(Codes.TAG_ALBUM_TITLE, albumName);
+                        intent.putExtra(Codes.TAG_ALBUM_ARTIST, artistName);
+                        intent.putExtra(Codes.TAG_ALBUMART, albumArt);
+                        getActivity().setResult(RESULT_OK, intent);
+                        Toast.makeText(getContext(),"Agregando "+ albumName + " a la playlist actual",
+                                Toast.LENGTH_SHORT).show();
+                        getActivity().finish();
+                        return true;
+                    }
+                });
                 getLoaderManager().initLoader(0, null, new AlbumLoader(getContext())); //id,args,callback}
                 break;
             case 2:
