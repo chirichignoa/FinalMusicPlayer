@@ -601,5 +601,11 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
         public void getResult() {
             MusicService.this.sendResult();
         }
+
+        @Override
+        public boolean isPlaying() {
+           return (!(MusicService.this.isPaused()));
+        }
+
     }
 }

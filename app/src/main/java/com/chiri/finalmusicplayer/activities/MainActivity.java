@@ -145,14 +145,12 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 if (MainActivity.this.iCallService != null) {
-                    if (playing) {
-                        playPause.setImageResource(R.drawable.ic_play_arrow);
+                    if (MainActivity.this.iCallService.isPlaying()) {
                         MainActivity.this.iCallService.pause();
-                        playing = false;
+                        playPause.setImageResource(R.drawable.ic_play_arrow);
                     } else {
-                        playPause.setImageResource(R.drawable.ic_action_playback_pause);
                         MainActivity.this.iCallService.resume();
-                        playing = true;
+                        playPause.setImageResource(R.drawable.ic_action_playback_pause);
                     }
                 }
             }
@@ -317,10 +315,6 @@ public class MainActivity extends AppCompatActivity {
                     newIntent.putExtras(newBundle);
                     startService(newIntent);
                     bindService(newIntent,sc,0);
-                    if(!playing) {
-                        playPause.setImageResource(R.drawable.ic_action_playback_pause);
-                        this.playing = true;
-                    }
                 }
         }
 
@@ -362,6 +356,9 @@ public class MainActivity extends AppCompatActivity {
             albumArt.setImageURI(Uri.parse(playingTrack.getAlbumArt()));
             artistName.setText(playingTrack.getArtistName());
             duration = (int) (long) playingTrack.getDuration();
+            if (iCallService.isPlaying()) {
+                playPause.setImageResource(R.drawable.ic_action_playback_pause);
+            }
             updateTime(duration, totalTime);
             setSeekBar(duration);
         }
