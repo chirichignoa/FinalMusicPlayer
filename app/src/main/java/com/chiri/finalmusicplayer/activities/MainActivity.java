@@ -4,6 +4,7 @@ import android.Manifest;
 import android.app.Activity;
 import android.content.BroadcastReceiver;
 import android.content.ComponentName;
+import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
@@ -15,6 +16,8 @@ import android.os.Environment;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.RemoteException;
+import android.provider.MediaStore;
+import android.provider.MediaStore.Audio;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.content.LocalBroadcastManager;
@@ -54,7 +57,10 @@ import org.json.JSONObject;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.OutputStreamWriter;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
 import java.util.List;
 
 import static android.Manifest.permission.INTERNET;
@@ -91,6 +97,59 @@ public class MainActivity extends AppCompatActivity {
     private MusicService.MusicServiceBinder iCallService;
     private MusicService musicService;
     private boolean bounded = false;
+
+    View.OnClickListener saveLyric = new View.OnClickListener() {
+        @Override
+        public void onClick(View v) {
+            String fileName = MainActivity.this.songName.getText().toString().replace(" ","-") + ".txt" ;
+            //File file = new File(getApplicationContext().getFilesDir(), filename);
+            File dir = new File(Environment.getExternalStorageDirectory().getAbsolutePath() + "/Text/" );
+            if (!dir.exists())
+            {
+                if(!dir.mkdirs()){
+                    Log.e("ALERT","could not create the directories");
+                }
+            }
+            final File file = new File(dir, fileName);
+            try {
+                if (!file.exists())
+                {
+                    file.createNewFile();
+                }
+                FileOutputStream fOut = new FileOutputStream(file);
+                Log.d("File", "File created with name: " + fileName);
+                Log.d("File", "Writing file");
+                // myOutWriter.append(MainActivity.this.lyricView.getText().toString().getBytes());
+                    /*myOutWriter.write(MainActivity.this.lyricView.getText().toString());
+                    myOutWriter.close();*/
+                fOut.write(MainActivity.this.lyricView.getText().toString().getBytes());
+                fOut.close();
+                Log.d("File", "Closing file");
+                Toast.makeText(MainActivity.this.getApplicationContext(),"Se guardo exitosamente la letra, en el directorio: " + file.toString(), Toast.LENGTH_LONG).show();
+            } catch (Exception e) {
+                Log.d("File", e.getMessage());
+            }
+        }
+    };
+
+    View.OnClickListener savePlaylist = new View.OnClickListener() {
+        @Override
+        public void onClick(View v) {
+            ContentValues values= new ContentValues();
+            String date = new SimpleDateFormat("yyyy-MM-dd").format(new Date());
+            values.put(MediaStore.Audio.Playlists.NAME, "PL" + date);
+            values.put(MediaStore.Audio.Playlists.DATE_ADDED, System.currentTimeMillis());
+            values.put(MediaStore.Audio.Playlists.DATE_MODIFIED, System.currentTimeMillis());
+            for (Song song: songs) {
+                values.put(Audio.Playlists.Members.DATA,song.getUri());
+            }
+            values.put("assd", String.valueOf(songs));
+            getContentResolver().insert(
+                    MediaStore.Audio.Playlists.EXTERNAL_CONTENT_URI,
+                    values);
+            Toast.makeText(getApplicationContext(),"Se ha guardado exitosamente la playlist", Toast.LENGTH_SHORT).show();
+        }
+    };
 
 
     private ServiceConnection sc = new ServiceConnection() {
@@ -195,40 +254,12 @@ public class MainActivity extends AppCompatActivity {
         lyricView.setMovementMethod(new ScrollingMovementMethod());
         lyricButton = (Button)findViewById(R.id.lyricButton);
         saveButton = (ImageButton)findViewById(R.id.saveButton);
-        saveButton.setVisibility(View.INVISIBLE);
-        saveButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                String fileName = MainActivity.this.songName.getText().toString().replace(" ","-") + ".txt" ;
-                //File file = new File(getApplicationContext().getFilesDir(), filename);
-                File dir = new File(Environment.getExternalStorageDirectory().getAbsolutePath() + "/Text/" );
-                if (!dir.exists())
-                {
-                    if(!dir.mkdirs()){
-                        Log.e("ALERT","could not create the directories");
-                    }
-                }
-                final File file = new File(dir, fileName);
-                try {
-                    if (!file.exists())
-                    {
-                        file.createNewFile();
-                    }
-                    FileOutputStream fOut = new FileOutputStream(file);
-                    Log.d("File", "File created with name: " + fileName);
-                    Log.d("File", "Writing file");
-                    // myOutWriter.append(MainActivity.this.lyricView.getText().toString().getBytes());
-                    /*myOutWriter.write(MainActivity.this.lyricView.getText().toString());
-                    myOutWriter.close();*/
-                    fOut.write(MainActivity.this.lyricView.getText().toString().getBytes());
-                    fOut.close();
-                    Log.d("File", "Closing file");
-                    Toast.makeText(MainActivity.this.getApplicationContext(),"Se guardo exitosamente la letra, en el directorio: " + file.toString(), Toast.LENGTH_LONG).show();
-                } catch (Exception e) {
-                    Log.d("File", e.getMessage());
-                }
-            }
-        });
+
+        //saveButton.setVisibility(View.INVISIBLE); //buscar en el codigo cuando se hace visible y poner el saveLyric
+
+        saveButton.setOnClickListener(this.savePlaylist);
+
+        //saveButton.setOnClickListener(saveLyric);
 
         this.hiddenItems = new View.OnClickListener() {
             @Override
@@ -242,7 +273,8 @@ public class MainActivity extends AppCompatActivity {
             public void onClick(View v) {
                 MainActivity.this.setItemsStatus(View.VISIBLE);
                 MainActivity.this.lyricView.setVisibility(View.INVISIBLE);
-                MainActivity.this.saveButton.setVisibility(View.INVISIBLE);
+               // MainActivity.this.saveButton.setVisibility(View.INVISIBLE);
+                saveButton.setOnClickListener(savePlaylist);
                 MainActivity.this.lyricButton.setText(R.string.lyricButton);
                 MainActivity.this.lyricButton.setOnClickListener(MainActivity.this.hiddenItems);
             }
@@ -421,7 +453,8 @@ public class MainActivity extends AppCompatActivity {
         if(playing){
             this.setItemsStatus(View.INVISIBLE);
             this.lyricView.setVisibility(View.VISIBLE);
-            this.saveButton.setVisibility(View.VISIBLE);
+            //this.saveButton.setVisibility(View.VISIBLE);
+            this.saveButton.setOnClickListener(saveLyric);
             this.lyricButton.setText(R.string.backButton);
             this.lyricButton.setOnClickListener(this.restoreItems);
             String artistName = this.artistName.getText().toString().replace(" ","-");
