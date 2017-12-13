@@ -1,6 +1,7 @@
 package com.chiri.finalmusicplayer.service;
 
 import android.app.Notification;
+import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.Service;
 import android.appwidget.AppWidgetManager;
@@ -179,9 +180,6 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
             }
             break;
             case Codes.TAG_ADD_ALBUM_QUEUE: {
-                //MusicService.this.stop();
-                //songs.clear();
-                //playingTrack = 0;
 
                 albumName = bundle.getString(Codes.TAG_ALBUM_TITLE);
                 artistName = bundle.getString(Codes.TAG_ALBUM_ARTIST);
@@ -292,12 +290,13 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
     }
 
     public void getForegroundAction(Intent intent) {
-        Log.d("FOREGROUND", "SABIENDO QUE HAGO");
+        Log.d("ACTION_PENDING_INTENT: ",intent.getStringExtra(Codes.TAG_ACTION));
+
         if (intent.getStringExtra(Codes.TAG_ACTION).equals(Codes.ACTION_PREVIOUS)) {
             this.previousSong();
         } else if (intent.getStringExtra(Codes.TAG_ACTION).equals(Codes.ACTION_PLAYPAUSE)) {
             if(isPaused) {
-                this.play();
+                this.resume();
             } else {
                 this.pause();
             }
@@ -389,6 +388,7 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
         MusicService.mediaPlayer.seekTo(position);
     }
 
+
     private void startForeground(){
         Log.d("Lifecycle", "SERVICE: startForeground");
 
@@ -399,21 +399,24 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
                 R.mipmap.ic_launcher);
 
         Intent previousIntent = new Intent(this, MusicService.class);
+        previousIntent.putExtra("numero","Int 1");
         previousIntent.putExtra(Codes.TAG_TYPE,Codes.TAG_ACTION);
-        previousIntent.putExtra(Codes.TAG_ACTION,Codes.ACTION_PREVIOUS);
-        PendingIntent ppreviousIntent = PendingIntent.getService(this, 0,
+        previousIntent.putExtra(Codes.TAG_ACTION,"PREVIOUS");
+        PendingIntent prevPendingIntent = PendingIntent.getService(this, 1,
                 previousIntent, 0);
 
-        Intent playIntent = new Intent(this, MusicService.class);
-        previousIntent.putExtra(Codes.TAG_TYPE,Codes.TAG_ACTION);
-        previousIntent.putExtra(Codes.TAG_ACTION,Codes.ACTION_PLAYPAUSE);
-        PendingIntent pplayIntent = PendingIntent.getService(this, 0,
-                playIntent, 0);
+        Intent pauseIntent = new Intent(this, MusicService.class);
+        pauseIntent.putExtra("numero","Int 2");
+        pauseIntent.putExtra(Codes.TAG_TYPE,Codes.TAG_ACTION);
+        pauseIntent.putExtra(Codes.TAG_ACTION,"PLAYPAUSE");
+        PendingIntent pausePendingIntent = PendingIntent.getService(this, 2,
+                pauseIntent, 0);
 
         Intent nextIntent = new Intent(this, MusicService.class);
+        nextIntent.putExtra("numero","Int 3");
         nextIntent.putExtra(Codes.TAG_TYPE,Codes.TAG_ACTION);
-        nextIntent.putExtra(Codes.TAG_ACTION,Codes.ACTION_NEXT);
-        PendingIntent pnextIntent = PendingIntent.getService(this, 0,
+        nextIntent.putExtra(Codes.TAG_ACTION,"NEXT");
+        PendingIntent nextPendingIntent = PendingIntent.getService(this, 3,
                 nextIntent, 0);
 
         int iconPlayPause;
@@ -426,20 +429,22 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
             text = "Pause";
         }
 
-        Notification notification = new NotificationCompat.Builder(this)
-                .setContentTitle("Final Music Player")
-                .setTicker("Reproduciendo ")
-                .setContentText(songs.get(playingTrack).getSongName())
-                .setSmallIcon(R.mipmap.ic_launcher)
-                .setLargeIcon(Bitmap.createScaledBitmap(icon, 128, 128, false))
-                .setContentIntent(pendingIntent)
-                .setOngoing(true)
-                .addAction(R.drawable.ic_action_playback_prev, "Previous",
-                        ppreviousIntent)
-                .addAction(iconPlayPause, text,
-                        pplayIntent)
-                .addAction(R.drawable.ic_action_playback_next, "Next",
-                        pnextIntent).build();
+        Notification notification =
+                new NotificationCompat.Builder(this)
+                        .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
+                        .setSmallIcon(R.mipmap.ic_launcher)
+                        .setTicker("Reproduciendo ")
+                        .setContentIntent(pendingIntent)
+                        // Agrego los botones para controlar la reproduccion
+                        .addAction(R.drawable.ic_action_playback_prev, "Previous", prevPendingIntent) // #1
+                        .addAction(iconPlayPause, text, pausePendingIntent)  // #2
+                        .addAction(R.drawable.ic_action_playback_next, "Next", nextPendingIntent)     // #3
+                        .setOngoing(true)
+                        .setContentTitle("Final Music Player")
+                        .setContentText(songs.get(playingTrack).getSongName())
+                        .setLargeIcon(Bitmap.createScaledBitmap(icon, 128, 128, false)) // Se puede poner la imagen del album
+                        .build();
+
         startForeground(1, notification);
     }
 
