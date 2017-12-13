@@ -4,12 +4,15 @@ import android.Manifest;
 import android.app.Activity;
 import android.content.BroadcastReceiver;
 import android.content.ComponentName;
+import android.content.ContentProvider;
+import android.content.ContentResolver;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.ServiceConnection;
 import android.content.pm.PackageManager;
+import android.database.Cursor;
 import android.graphics.Color;
 import android.net.Uri;
 import android.os.Environment;
@@ -20,6 +23,7 @@ import android.provider.MediaStore;
 import android.provider.MediaStore.Audio;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
+import android.support.v4.content.CursorLoader;
 import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -133,21 +137,80 @@ public class MainActivity extends AppCompatActivity {
     };
 
     View.OnClickListener savePlaylist = new View.OnClickListener() {
+        String mPlaylistId;
+
         @Override
         public void onClick(View v) {
-            ContentValues values= new ContentValues();
-            String date = new SimpleDateFormat("yyyy-MM-dd").format(new Date());
-            values.put(MediaStore.Audio.Playlists.NAME, "PL" + date);
-            values.put(MediaStore.Audio.Playlists.DATE_ADDED, System.currentTimeMillis());
-            values.put(MediaStore.Audio.Playlists.DATE_MODIFIED, System.currentTimeMillis());
+            ContentResolver cr = getApplicationContext().getContentResolver();
+            String date = new SimpleDateFormat("yyyy-MM-dd HH:mm").format(new Date());
+            createMediaStorePlaylist("PL" + date);
             for (Song song: songs) {
-                values.put(Audio.Playlists.Members.DATA,song.getUri());
+                long audioId = getAudioID(cr,song.getUri());
+                if (audioId!=-1) {
+                    addSongToPlaylist(cr, audioId, Long.parseLong(mPlaylistId));
+                }
             }
-            values.put("assd", String.valueOf(songs));
-            getContentResolver().insert(
-                    MediaStore.Audio.Playlists.EXTERNAL_CONTENT_URI,
-                    values);
             Toast.makeText(getApplicationContext(),"Se ha guardado exitosamente la playlist", Toast.LENGTH_SHORT).show();
+        }
+
+        private long getAudioID(ContentResolver cr, String data) {
+            long id = -1;
+            Uri uri = MediaStore.Audio.Media.EXTERNAL_CONTENT_URI;
+            String selection = MediaStore.Audio.Media.DATA;
+            String[] selectionArgs = {data};
+            String[] projection = {MediaStore.Audio.Media._ID};
+            String sortOrder = MediaStore.Audio.Media.TITLE + " ASC";
+
+            Cursor cursor = cr.query(uri, projection, selection + "=?", selectionArgs, sortOrder);
+            if (cursor != null) {
+                while (cursor.moveToNext()) {
+                    int idIndex = cursor.getColumnIndex(MediaStore.Audio.Media._ID);
+                    id = Long.parseLong(cursor.getString(idIndex));
+                }
+            }
+            return id;
+        }
+
+        private void createMediaStorePlaylist(String playlistName) {
+            ContentValues mInserts = new ContentValues();
+            mInserts.put(MediaStore.Audio.Playlists.NAME, playlistName);
+            mInserts.put(MediaStore.Audio.Playlists.DATE_ADDED, System.currentTimeMillis());
+            mInserts.put(MediaStore.Audio.Playlists.DATE_MODIFIED, System.currentTimeMillis());
+
+            Uri mUri = getApplicationContext().getContentResolver().insert(MediaStore.Audio.Playlists.EXTERNAL_CONTENT_URI, mInserts);
+            if (mUri != null) {
+                String[] PROJECTION_PLAYLIST = new String[] {
+                        MediaStore.Audio.Playlists._ID,
+                        MediaStore.Audio.Playlists.NAME,
+                        MediaStore.Audio.Playlists.DATA
+                };
+                Cursor c = getApplicationContext().getContentResolver().query(mUri, PROJECTION_PLAYLIST, null, null, null);
+                if (c != null) {
+                /* Save the newly created ID so it can be selected. Names are allowed to be duplicated,
+                 * but IDs can never be. */
+                    c.moveToFirst();
+                    mPlaylistId = "" + c.getLong(c.getColumnIndex(Audio.Playlists._ID));
+                    c.close();
+                }
+
+            }
+
+        }
+
+        private void addSongToPlaylist(ContentResolver resolver, long audioId, long playlistId) {
+
+            String[] cols = new String[] {
+                    "count(*)"
+            };
+            Uri uri = MediaStore.Audio.Playlists.Members.getContentUri("external", playlistId);
+            Cursor cur = resolver.query(uri, cols, null, null, null);
+            cur.moveToFirst();
+            final int base = cur.getInt(0);
+            cur.close();
+            ContentValues values = new ContentValues();
+            values.put(MediaStore.Audio.Playlists.Members.PLAY_ORDER, base + audioId);
+            values.put(MediaStore.Audio.Playlists.Members.AUDIO_ID, audioId);
+            resolver.insert(uri, values);
         }
     };
 
