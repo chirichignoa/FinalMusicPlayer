@@ -322,7 +322,7 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
 
     public void resume(){
         Log.i("Player Info","Resumiendo");
-        this.mediaPlayer.start();
+        mediaPlayer.start();
         isPaused = false;
     }
 
@@ -378,7 +378,7 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
     }
 
     public List getPlaylist(){
-        return this.songs;
+        return songs;
     }
 
     public int getCurrentPosition() {

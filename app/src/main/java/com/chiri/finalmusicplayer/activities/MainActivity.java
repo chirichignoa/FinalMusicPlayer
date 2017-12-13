@@ -513,7 +513,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void searchLyric() {
-        if(playing){
+        if(this.iCallService != null && this.iCallService.isPlaying()){
             this.setItemsStatus(View.INVISIBLE);
             this.lyricView.setVisibility(View.VISIBLE);
             //this.saveButton.setVisibility(View.VISIBLE);
