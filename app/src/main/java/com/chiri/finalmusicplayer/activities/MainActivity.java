@@ -83,7 +83,6 @@ public class MainActivity extends AppCompatActivity {
     private static final String API_PARAMETER_KEY = "apikey=";
 
 
-    private boolean playing = false;
     private int duration;
     private ImageButton playPause, nextSong, previousSong, saveButton;
     private ImageView albumArt;
@@ -98,8 +97,8 @@ public class MainActivity extends AppCompatActivity {
 
     private View.OnClickListener hiddenItems, restoreItems;
 
-    private MusicService.MusicServiceBinder iCallService;
-    private MusicService musicService;
+    private MusicService.MusicServiceBinder iCallService = null;
+    private MusicService musicService = null;
     private boolean bounded = false;
 
     View.OnClickListener saveLyric = new View.OnClickListener() {
@@ -158,7 +157,7 @@ public class MainActivity extends AppCompatActivity {
             Uri uri = MediaStore.Audio.Media.EXTERNAL_CONTENT_URI;
             String selection = MediaStore.Audio.Media.DATA;
             String[] selectionArgs = {data};
-            String[] projection = {MediaStore.Audio.Media._ID};
+            String[] projection = {MediaStore.Audio.Media._ID,};
             String sortOrder = MediaStore.Audio.Media.TITLE + " ASC";
 
             Cursor cursor = cr.query(uri, projection, selection + "=?", selectionArgs, sortOrder);
@@ -267,12 +266,12 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 if (MainActivity.this.iCallService != null) {
-                    if (MainActivity.this.iCallService.isPlaying()) {
-                        MainActivity.this.iCallService.pause();
-                        playPause.setImageResource(R.drawable.ic_play_arrow);
-                    } else {
+                    if (MainActivity.this.iCallService.isPaused()) {
                         MainActivity.this.iCallService.resume();
                         playPause.setImageResource(R.drawable.ic_action_playback_pause);
+                    } else if (MainActivity.this.iCallService.isPlaying())  {
+                        MainActivity.this.iCallService.pause();
+                        playPause.setImageResource(R.drawable.ic_play_arrow);
                     }
                 }
             }
@@ -306,9 +305,12 @@ public class MainActivity extends AppCompatActivity {
         currentPlayList.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                MainActivity.this.iCallService.playSelectedSong(position);
+                if (MainActivity.this.iCallService != null) {
+                    MainActivity.this.iCallService.playSelectedSong(position);
+                }
             }
         });
+
         this.adapter = new CurrentPlayListAdapter(getApplicationContext(),this.songs);
         currentPlayList.setAdapter(adapter);
 
@@ -351,16 +353,20 @@ public class MainActivity extends AppCompatActivity {
         MainActivity.this.runOnUiThread(new Runnable() {
             @Override
             public void run() {
-                int currentPosition = MainActivity.this.iCallService.getCurrentPosition();
-                seekBar.setProgress(currentPosition);
-                mHandler.postDelayed(this, 1000);
+                if (MainActivity.this.iCallService != null) {
+                    int currentPosition = MainActivity.this.iCallService.getCurrentPosition();
+                    seekBar.setProgress(currentPosition);
+                    mHandler.postDelayed(this, 1000);
+                }
             }
         });
         this.seekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
             @Override
             public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
                 if (fromUser) {
-                    MainActivity.this.iCallService.seekTo(progress);
+                    if (MainActivity.this.iCallService != null) {
+                        MainActivity.this.iCallService.seekTo(progress);
+                    }
                 }
                 updateTime(progress, currentTime);
             }
@@ -409,7 +415,7 @@ public class MainActivity extends AppCompatActivity {
                     Log.i("Code-MainActivity", newBundle.getString(Codes.TAG_TYPE));
                     newIntent.putExtras(newBundle);
                     startService(newIntent);
-                    bindService(newIntent,sc,0);
+                    bounded = bindService(newIntent,sc,0);
                 }
         }
 
@@ -448,11 +454,17 @@ public class MainActivity extends AppCompatActivity {
 
             Log.d("CANCION RECIBIDA",playingTrack.toString());
             songName.setText(playingTrack.getSongName());
-            albumArt.setImageURI(Uri.parse(playingTrack.getAlbumArt()));
+            if (playingTrack.getAlbumArt() != null) {
+                albumArt.setImageURI(Uri.parse(playingTrack.getAlbumArt()));
+            }
             artistName.setText(playingTrack.getArtistName());
             duration = (int) (long) playingTrack.getDuration();
-            if (iCallService.isPlaying()) {
-                playPause.setImageResource(R.drawable.ic_action_playback_pause);
+            if (iCallService != null){
+                if (iCallService.isPlaying()) {
+                    if (!(iCallService.isPaused())) {
+                        playPause.setImageResource(R.drawable.ic_action_playback_pause);
+                    }
+                }
             }
             updateTime(duration, totalTime);
             setSeekBar(duration);
@@ -507,7 +519,6 @@ public class MainActivity extends AppCompatActivity {
             bounded = false;
         }
         unregisterReceiver(playingTrackReceiver);
-
         Log.d("Lifecycle", "SALIENDO ONDESTROY - Bounded: " + bounded);
         super.onDestroy();
     }

@@ -45,8 +45,9 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
     private static MediaPlayer mediaPlayer;
     private static String artistName, songName, albumArt, albumName, playlistName;
     private static ArrayList<Song> songs = new ArrayList<>();
-    private static int playingTrack = 0;
-    private static boolean isPlaying = false, isPaused = false;
+    private static int playingTrack = 0; //Será 0 si no hay ningún PlayingTrack reproduciendo (aunque esté en pausa)
+    private static boolean isPlaying = false; //Será True si MediaPlayer está ejecutando (Aunque esté el PlayingTrack en pausa)
+    private static boolean isPaused = false; //Será True si isPlaying es true y además, el playingTrack está en puasa.
 
     public MusicService() {
     }
@@ -79,7 +80,7 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
         mediaPlayer.setOnPreparedListener(this);
         mediaPlayer.setOnErrorListener(this);
         mediaPlayer.setOnCompletionListener(this);
-        mediaPlayer.setVolume(75, 75);
+        mediaPlayer.setVolume(90, 90);
     }
 
     private void getSongsOfBundle(Bundle bundle){
@@ -175,12 +176,9 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
                         + MediaStore.Audio.Media.ARTIST + "=?";
                 String[] selectionArgs = {songName, artistName};
                 sl.execute(uri, projection, selection, selectionArgs, true);
-
-
             }
             break;
             case Codes.TAG_ADD_ALBUM_QUEUE: {
-
                 albumName = bundle.getString(Codes.TAG_ALBUM_TITLE);
                 artistName = bundle.getString(Codes.TAG_ALBUM_ARTIST);
                 albumArt = bundle.getString(Codes.TAG_ALBUMART);
@@ -201,11 +199,7 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
             case Codes.TAG_ACTION:
                 getForegroundAction(intent);
                 break;
-            case Codes.TAG_SEND_RESULT: //ESTE CASE ME PARECE QUE ESTÁ DE MÁS. LUEGO SE LO REVISA.
-                sendResult();
-                changeCurrentPlaylist();
-                updateWidget();
-                break;
+
             default:
                 break;
         }
@@ -229,12 +223,12 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
     public void onPrepared(MediaPlayer mediaPlayer) {
         Log.i("Player Info","Empieza a reproducir");
         Log.d("Lifecycle", "SERVICE: onPrepared");
-        sendResult();
-        updateWidget();
-        changeCurrentPlaylist();
         mediaPlayer.start();
         isPlaying = true;
         isPaused = false;
+
+        sendResult();
+        updateWidget();
     }
 
     private void sendResult() {
@@ -247,27 +241,9 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
             intent.putExtra(Codes.TAG_PLAYLIST, songs);
             sendBroadcast(intent);
             Log.d("RECEIVER", "SEND BROADCAST");
-
-            //Actualizamos el widget tras la configuración
-            AppWidgetManager appWidgetManager =
-                    AppWidgetManager.getInstance(MusicService.this);
-
-            ComponentName thisWidget = new ComponentName(getApplicationContext(),
-                    PlayerWidget.class);
-            int[] allWidgetIds = appWidgetManager.getAppWidgetIds(thisWidget);
-            for (int i = 0; i < allWidgetIds.length; i++) {
-                Log.d("Widget", "Intentando actualizar el widget con id: " + i);
-                PlayerWidget.updateAppWidget(MusicService.this, appWidgetManager, i);
-            }
         }
     }
 
-    private void changeCurrentPlaylist() {
-        if(songs.size() > 0) {
-            Intent intent = new Intent(Codes.TAG_SEND_CURRENT_PLAYLIST);
-            intent.putParcelableArrayListExtra(Codes.TAG_CURRENT_PLAYLIST, songs);
-        }
-    }
 
     public void updateWidget() {
         if(songs.size() > 0) {
@@ -295,7 +271,7 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
         if (intent.getStringExtra(Codes.TAG_ACTION).equals(Codes.ACTION_PREVIOUS)) {
             this.previousSong();
         } else if (intent.getStringExtra(Codes.TAG_ACTION).equals(Codes.ACTION_PLAYPAUSE)) {
-            if(isPaused) {
+            if(this.isPaused()) {
                 this.resume();
             } else {
                 this.pause();
@@ -308,9 +284,11 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
     public void stop() {
         Log.i("Player Info","Paro");
         isPlaying = false;
+        isPaused = false;
         playingTrack = 0;
         mediaPlayer.stop();
         mediaPlayer.reset();
+        //stopSelf();
     }
 
     public void pause() {
@@ -429,6 +407,18 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
             text = "Pause";
         }
 
+        String albumArt = (songs.get(playingTrack)).getAlbumArt();
+        Bitmap albumIcon;
+        albumIcon = Bitmap.createScaledBitmap(icon, 128, 128, false);
+        if (albumArt != null) {
+            try {
+                albumIcon = MediaStore.Images.Media.getBitmap(this.getContentResolver(), Uri.parse(albumArt));
+            }
+            catch(Exception e){
+                Log.e("ICON ALBUMART NOTIFIC", "Error setting Bitmap from URI");
+            }
+        }
+
         Notification notification =
                 new NotificationCompat.Builder(this)
                         .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
@@ -442,7 +432,8 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
                         .setOngoing(true)
                         .setContentTitle("Final Music Player")
                         .setContentText(songs.get(playingTrack).getSongName())
-                        .setLargeIcon(Bitmap.createScaledBitmap(icon, 128, 128, false)) // Se puede poner la imagen del album
+                        //.setLargeIcon(Bitmap.createScaledBitmap(icon, 128, 128, false)) // Se puede poner la imagen del album
+                        .setLargeIcon(albumIcon)
                         .build();
 
         startForeground(1, notification);
@@ -492,6 +483,7 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
                     String a = data.getString(data.getColumnIndex(MediaStore.Audio.Media.DURATION));
                     if(a == null) // un archivo ocasionaba problemas porque tenia duracion 0
                         a = Integer.toString(0);
+
                     Song s = new Song(  data.getString(data.getColumnIndex(Codes.TAG_SONG_TITLE)),
                                         artistName,
                                         data.getString(data.getColumnIndex(MediaStore.Audio.Media.ALBUM)),
@@ -502,12 +494,12 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
                     Log.i("DoInBack", "Song for load: " + s.getSongName());
                     songs.add(s);
                 }
+                Log.d(TAG,"Closing Cursor");
+                data.close();
             }
-            MusicService.this.changeCurrentPlaylist();
-            Log.d(TAG,"Closing Cursor");
-            data.close();
             return null;
         }
+
 
         @Override
         protected void onPostExecute(Object o) {
@@ -546,6 +538,11 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
                     artistName = cursor.getString(cursor.getColumnIndex(MediaStore.Audio.Playlists.Members.ARTIST));
                     if(a == null) // un archivo ocasionaba problemas porque tenia duracion 0
                         a = Integer.toString(0);
+
+                    // Acá debo instanciar albumArt porque en una ejecución nueva viene con Null, probablemente necesite guardar
+                    // la Uri del albumArt, cuando guardo la playList, para poder instanciarla aquí y que se respete el albumArt de
+                    // cada cancion de la PlayList.
+
                     Song s = new Song(  cursor.getString(cursor.getColumnIndex(MediaStore.Audio.Playlists.Members.TITLE)),
                             artistName,
                             cursor.getString(cursor.getColumnIndex(MediaStore.Audio.Playlists.Members.ALBUM)),
@@ -556,7 +553,6 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
 
                     songs.add(s);
                 }
-                MusicService.this.changeCurrentPlaylist();
                 Log.d(TAG,"Closing Cursor");
                 cursor.close();
             }
@@ -565,12 +561,15 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
 
         @Override
         protected void onPostExecute(Object o) {
-            Log.d(TAG,"Songs Loaded");
+            Log.d("Lifecycle", "SERVICE: onPostExecute");
+            Log.d(TAG,"Songs Loaded from PlayList");
+
             for(Song s: songs){
                 Log.d(TAG, s.toString());
             }
             Log.d(TAG, Integer.toString(songs.size()));
             MusicService.this.play();
+            sendResult();
         }
     }
 
@@ -633,7 +632,12 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
 
         @Override
         public boolean isPlaying() {
-           return (!(MusicService.this.isPaused()));
+           return MusicService.this.isPlaying();
+        }
+
+        @Override
+        public boolean isPaused() {
+            return MusicService.this.isPaused();
         }
 
     }

@@ -19,4 +19,6 @@ public interface ICallService {
     void playSelectedSong(int position);
     void getResult();
     boolean isPlaying();
+    boolean isPaused();
+
 }

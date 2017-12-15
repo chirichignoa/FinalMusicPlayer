@@ -104,7 +104,9 @@ public class CurrentPlayListAdapter extends BaseAdapter {
         holder.title.setText(s.getSongName());
         holder.subTitle.setTextColor(Color.BLACK);
         holder.subTitle.setText(s.getArtistName());
-        holder.image.setImageURI(Uri.parse(s.getAlbumArt()));
+        if (s.getAlbumArt() != null) {
+            holder.image.setImageURI(Uri.parse(s.getAlbumArt()));
+        }
         return convertView;
     }
 
