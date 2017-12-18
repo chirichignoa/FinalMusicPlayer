@@ -199,7 +199,17 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
             case Codes.TAG_ACTION:
                 getForegroundAction(intent);
                 break;
+            case Codes.TAG_CURRENT_PLAYLIST: {
+                MusicService.this.stop();
+                songs.clear();
+                playingTrack = 0;
 
+                int position = intent.getExtras().getInt(Codes.TAG_POSITION);
+                ArrayList<Song> currentPlayList = intent.getParcelableArrayListExtra(Codes.TAG_PLAYLIST);
+                songs.addAll(currentPlayList);
+                playSelectedSong(position);
+            }
+            break;
             default:
                 break;
         }

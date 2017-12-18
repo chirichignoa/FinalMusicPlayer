@@ -346,8 +346,11 @@ public class MainActivity extends AppCompatActivity {
         currentPlayList.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                if (MainActivity.this.iCallService != null) {
+                if (bounded) {
                     MainActivity.this.iCallService.playSelectedSong(position);
+                }
+                else{
+                    playCurrentPlayList(position);
                 }
             }
         });
@@ -385,6 +388,16 @@ public class MainActivity extends AppCompatActivity {
                 MainActivity.this.lyricButton.setOnClickListener(MainActivity.this.hiddenItems);
             }
         };
+    }
+
+    private void playCurrentPlayList(int position){
+
+        Intent newIntent = new Intent(this,MusicService.class);
+        newIntent.putExtra(Codes.TAG_TYPE,Codes.TAG_CURRENT_PLAYLIST);
+        newIntent.putExtra(Codes.TAG_PLAYLIST,songs);
+        newIntent.putExtra(Codes.TAG_POSITION,position);
+        startService(newIntent);
+        bindService(newIntent,sc,0);
     }
 
     private void stop() {
