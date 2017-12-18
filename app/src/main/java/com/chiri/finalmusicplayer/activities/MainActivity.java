@@ -2,12 +2,15 @@ package com.chiri.finalmusicplayer.activities;
 
 import android.Manifest;
 import android.app.Activity;
+import android.app.AlertDialog;
+import android.app.Dialog;
 import android.content.BroadcastReceiver;
 import android.content.ComponentName;
 import android.content.ContentProvider;
 import android.content.ContentResolver;
 import android.content.ContentValues;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.ServiceConnection;
@@ -33,6 +36,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.ListView;
@@ -140,16 +144,47 @@ public class MainActivity extends AppCompatActivity {
 
         @Override
         public void onClick(View v) {
-            ContentResolver cr = getApplicationContext().getContentResolver();
-            String date = new SimpleDateFormat("yyyy-MM-dd HH:mm").format(new Date());
-            createMediaStorePlaylist("PL" + date);
-            for (Song song: songs) {
-                long audioId = getAudioID(cr,song.getUri());
-                if (audioId!=-1) {
-                    addSongToPlaylist(cr, audioId, Long.parseLong(mPlaylistId));
+            final ContentResolver cr = getApplicationContext().getContentResolver();
+
+            final String date = new SimpleDateFormat("yyyy-MM-dd HH:mm").format(new Date());
+
+            //Armo un Dialogo para consultar al usuario nombre de la playlist
+            AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
+            builder.setTitle("Guardar Playlist");
+            builder.setMessage("Ingrese nombre de la Playlist");
+
+            // Armo un EditText view para obtener la respuesta del usuario
+            final EditText input = new EditText(MainActivity.this);
+            input.setText("No-name-PL" + date);
+            input.selectAll();
+            // Le asigno el EditText al constructor del Diálogo
+            builder.setView(input);
+
+            // Guardo la Playlist solo si oprime el boton "Guardar"
+            // Agrego un bloque Try-Catch por si el EditText viene vacío, en ese caso se usa el nombre por defecto.
+            builder.setPositiveButton("Guardar", new DialogInterface.OnClickListener() {
+                public void onClick(DialogInterface dialog, int whichButton) {
+                    try
+                    {
+                        createMediaStorePlaylist(input.getText().toString());
+                    }
+                    catch (Exception e)
+                    {
+                        createMediaStorePlaylist("No-name-PL" + date);
+                    }
+
+                    for (Song song: songs) {
+                        long audioId = getAudioID(cr,song.getUri());
+                        if (audioId!=-1) {
+                            addSongToPlaylist(cr, audioId, Long.parseLong(mPlaylistId));
+                        }
+                    }
+                    Toast.makeText(getApplicationContext(),"Se ha guardado exitosamente la playlist", Toast.LENGTH_SHORT).show();
                 }
-            }
-            Toast.makeText(getApplicationContext(),"Se ha guardado exitosamente la playlist", Toast.LENGTH_SHORT).show();
+            });
+
+            builder.setNegativeButton("Cancelar", null);
+            builder.create().show();
         }
 
         private long getAudioID(ContentResolver cr, String data) {
