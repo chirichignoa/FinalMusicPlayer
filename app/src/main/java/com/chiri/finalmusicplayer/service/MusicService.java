@@ -429,6 +429,7 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
                         .addAction(R.drawable.ic_action_playback_prev, "Previous", prevPendingIntent) // #1
                         .addAction(iconPlayPause, text, pausePendingIntent)  // #2
                         .addAction(R.drawable.ic_action_playback_next, "Next", nextPendingIntent)     // #3
+                        .addAction(R.drawable.ic_action_playback_next, "Stop", nextPendingIntent)     // #3
                         .setOngoing(true)
                         .setContentTitle("Final Music Player")
                         .setContentText(songs.get(playingTrack).getSongName())
