@@ -288,7 +288,6 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
         playingTrack = 0;
         mediaPlayer.stop();
         mediaPlayer.reset();
-        //stopSelf();
     }
 
     public void pause() {
@@ -309,8 +308,6 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
             playingTrack += 1;
             mediaPlayer.reset();
             this.play();
-        }else{
-            this.stop();
         }
     }
 
@@ -341,8 +338,12 @@ public class MusicService extends Service implements MediaPlayer.OnPreparedListe
     public void onCompletion(MediaPlayer mediaPlayer) {
         Log.i("Player Info","Termino la cancion numero: "+ playingTrack);
         Log.d("Lifecycle", "SERVICE: onCompletion");
-
-        this.nextSong();
+        if(playingTrack+1 == songs.size()) {
+            stopSelf();
+        }
+        else {
+            this.nextSong();
+        }
     }
 
     public void playSelectedSong(int position) {

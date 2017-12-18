@@ -200,6 +200,20 @@
             android:layout_height="wrap_content"
             android:layout_weight="0.59" />
 
+        <ImageButton
+            android:id="@+id/stopButton"
+            android:layout_width="47dp"
+            android:layout_height="match_parent"
+            android:layout_weight="0.48"
+            android:background="@null"
+            android:scaleType="fitCenter"
+            app:srcCompat="@drawable/ic_action_stop" />
+
+        <Space
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="0.59" />
+
     </LinearLayout>
 
     <Button

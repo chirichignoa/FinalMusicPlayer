@@ -88,7 +88,7 @@ public class MainActivity extends AppCompatActivity {
 
 
     private int duration;
-    private ImageButton playPause, nextSong, previousSong, saveButton;
+    private ImageButton playPause, nextSong, previousSong, saveButton, stop;
     private ImageView albumArt;
     private TextView songName, artistName, totalTime, currentTime, lyricView;
     private SeekBar seekBar;
@@ -284,6 +284,7 @@ public class MainActivity extends AppCompatActivity {
 
     private void init(){
         ImageButton libraryButton = (ImageButton) findViewById(R.id.libraryButton);
+
         libraryButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -294,6 +295,7 @@ public class MainActivity extends AppCompatActivity {
         playPause = (ImageButton)findViewById(R.id.playButton);
         nextSong = (ImageButton)findViewById(R.id.nextSongButton);
         previousSong = (ImageButton)findViewById(R.id.previousSongButton);
+        stop = (ImageButton) findViewById(R.id.stopButton);
         playPause.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -326,6 +328,13 @@ public class MainActivity extends AppCompatActivity {
                 }
             }
         });
+        stop.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                stop();
+            }
+        });
+
         songName = (TextView) findViewById(R.id.songName);
         artistName = (TextView) findViewById(R.id.artistName);
         albumArt = (ImageView) findViewById(R.id.albumImage);
@@ -377,6 +386,21 @@ public class MainActivity extends AppCompatActivity {
             }
         };
     }
+
+    private void stop() {
+
+        Intent service = new Intent(this,MusicService.class);
+        updateTime(0,totalTime);
+        setSeekBar(0);
+        playPause.setImageResource(R.drawable.ic_play_arrow);
+
+        if (bounded) {
+            iCallService.stop();
+        }
+
+        stopService(service);
+    }
+
 
     private void setSeekBar(int totalTime) {
         this.seekBar.setMax(totalTime);
