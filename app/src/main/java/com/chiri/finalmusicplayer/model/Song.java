@@ -14,6 +14,8 @@ public class Song implements Parcelable {
     private String albumName;
     private long duration;
     private String albumArt;
+
+
     private String uri; //URI de la cancion en el dispositivo
 
     public Song(String songName, String artistName, String albumName, long duration, String albumArt, String uri) {
@@ -72,6 +74,9 @@ public class Song implements Parcelable {
         return uri;
     }
 
+    public void setAlbumArt(String albumArt) {
+        this.albumArt = albumArt;
+    }
 
     @Override
     public String toString() {

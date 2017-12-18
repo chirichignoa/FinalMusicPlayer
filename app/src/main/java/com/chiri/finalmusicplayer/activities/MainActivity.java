@@ -522,9 +522,17 @@ public class MainActivity extends AppCompatActivity {
 
             Log.d("CANCION RECIBIDA",playingTrack.toString());
             songName.setText(playingTrack.getSongName());
+            Uri albumArtUri = null;
             if (playingTrack.getAlbumArt() != null) {
-                albumArt.setImageURI(Uri.parse(playingTrack.getAlbumArt()));
+                albumArtUri = Uri.parse(playingTrack.getAlbumArt());
+            } else {
+                albumArtUri = Uri.parse(MainActivity.getAlbumArt(getApplicationContext(), playingTrack.getAlbumName()));
             }
+
+            for (Song s:currentPlayList) {
+                s.setAlbumArt(MainActivity.getAlbumArt(getApplicationContext(), s.getAlbumName()));
+            }
+            albumArt.setImageURI(albumArtUri);
             artistName.setText(playingTrack.getArtistName());
             duration = (int) (long) playingTrack.getDuration();
             if (iCallService != null){
@@ -568,6 +576,29 @@ public class MainActivity extends AppCompatActivity {
         Log.d("Lifecycle", "OnDestroy - Bounded: " + bounded);
 
         super.onDestroy();
+    }
+
+    private static String getAlbumArt(Context c, String selection){ //from albumName
+        Cursor cursor = c.getContentResolver().query(
+                MediaStore.Audio.Albums.EXTERNAL_CONTENT_URI,
+                new String[] {
+                        MediaStore.Audio.Albums._ID,
+                        MediaStore.Audio.AlbumColumns.ALBUM,
+                        MediaStore.Audio.AlbumColumns.ALBUM_ART},
+                MediaStore.Audio.AlbumColumns.ALBUM + "=?",
+                new String[] {selection},
+                null);
+
+        String path = null;
+        String albumID = null;
+        if (cursor.moveToFirst()) {
+            path = cursor.getString(cursor.getColumnIndex(MediaStore.Audio.Albums.ALBUM_ART));
+        }
+        if(path == null){
+            path = "android.resource://com.chiri.finalmusicplayer/drawable/no_art";
+        }
+        cursor.close();
+        return path;
     }
 
     private void searchLyric() {
