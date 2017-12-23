@@ -28,7 +28,7 @@ public class PlayerWidget extends AppWidgetProvider {
     public static void updateAppWidget(Context context, AppWidgetManager appWidgetManager,
                                 int appWidgetId) {
         Log.d("Widget","Aca en el updateAppWidget");
-        String mensaje = "No hay ninguna cancion reproduciendo";
+        String mensaje = "No hay reproducción";
 
         // Construct the RemoteViews object
         RemoteViews views = new RemoteViews(context.getPackageName(), R.layout.player_widget);
@@ -45,6 +45,9 @@ public class PlayerWidget extends AppWidgetProvider {
 
         if(currentSong != null) {
             mensaje = currentSong.getSongName();
+        }
+        else {
+            mensaje = "no hay reproducción";
         }
         Log.d("Widget", "Mensaje: " + mensaje);
         views.setTextViewText(R.id.appwidget_text, mensaje);
