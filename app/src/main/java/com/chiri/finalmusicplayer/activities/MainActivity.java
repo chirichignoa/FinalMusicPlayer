@@ -105,11 +105,379 @@ public class MainActivity extends AppCompatActivity {
     private MusicService musicService = null;
     private boolean bounded = false;
 
+    private ServiceConnection sc = new ServiceConnection() {
+        @Override
+        public void onServiceConnected(ComponentName name, IBinder service) {
+            iCallService = (MusicService.MusicServiceBinder) service;
+            musicService = iCallService.getService();
+            bounded = true;
+            iCallService.getResult();
+        }
+        @Override
+        public void onServiceDisconnected(ComponentName name) {
+            iCallService = null;
+            musicService = null;
+            bounded = false;
+        }
+    };
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        Log.d("Lifecycle", "onCreate MainActivity Bounded: "+bounded);
+        super.onCreate(savedInstanceState);
+
+        setContentView(R.layout.activity_main);
+        if (checkPermission()) {
+            init();
+        } else {
+            requestPermission(); // Code for permission
+        }
+
+        //Chequeo si hay un Service corriendo y necesito bindearlo al iniciar de nuevo la App
+        Intent checkService = new Intent(this,MusicService.class);
+        bindService(checkService,sc,0);
+    }
+
+    private boolean checkPermission() {
+        int result = ContextCompat.checkSelfPermission(MainActivity.this, INTERNET);
+        int result2 = ContextCompat.checkSelfPermission(MainActivity.this, WRITE_EXTERNAL_STORAGE);
+        if (result == PackageManager.PERMISSION_GRANTED && result2 == PackageManager.PERMISSION_GRANTED) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    private void requestPermission() {
+        if (ActivityCompat.shouldShowRequestPermissionRationale(MainActivity.this, INTERNET)) {
+            Toast.makeText(MainActivity.this, "Usar internet permite obtener letras de las canciones. Por favor conceda este permiso en los ajustes.", Toast.LENGTH_LONG).show();
+        } else if (ActivityCompat.shouldShowRequestPermissionRationale(MainActivity.this, WRITE_EXTERNAL_STORAGE)) {
+            Toast.makeText(MainActivity.this, "Usar la escritura permite guardar letras de las canciones. Por favor conceda este permiso en los ajustes.", Toast.LENGTH_LONG).show();
+        } else {
+            ActivityCompat.requestPermissions(MainActivity.this, new String[]{INTERNET, WRITE_EXTERNAL_STORAGE}, PERMISSION_REQUEST_CODE);
+        }
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, String permissions[], int[] grantResults) {
+        switch (requestCode) {
+            case PERMISSION_REQUEST_CODE:
+                if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    Log.e("value", "Permission Granted.");
+                    init();
+                } else {
+                    Log.e("value", "Permission Denied.");
+                }
+                break;
+        }
+    }
+
+    private void init(){
+        ImageButton libraryButton = (ImageButton) findViewById(R.id.libraryButton);
+
+        libraryButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent libraryView = new Intent(MainActivity.this, LibraryActivity.class);
+                startActivityForResult(libraryView, CODIGO_LibraryActivity);
+            }
+        });
+        playPause = (ImageButton)findViewById(R.id.playButton);
+        nextSong = (ImageButton)findViewById(R.id.nextSongButton);
+        previousSong = (ImageButton)findViewById(R.id.previousSongButton);
+        stop = (ImageButton) findViewById(R.id.stopButton);
+        playPause.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (MainActivity.this.iCallService != null) {
+                    if (MainActivity.this.iCallService.isPaused()) {
+                        MainActivity.this.iCallService.resume();
+                        playPause.setImageResource(R.drawable.ic_action_playback_pause);
+                    } else if (MainActivity.this.iCallService.isPlaying())  {
+                        MainActivity.this.iCallService.pause();
+                        playPause.setImageResource(R.drawable.ic_play_arrow);
+                    }
+                }
+            }
+        });
+        nextSong.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v)
+            {
+                if (MainActivity.this.iCallService != null) {
+                    MainActivity.this.iCallService.nextSong();
+                }
+            }
+        });
+        previousSong.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v)
+            {
+                if (MainActivity.this.iCallService != null) {
+                    MainActivity.this.iCallService.previousSong();
+                }
+            }
+        });
+        stop.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                stop();
+            }
+        });
+
+        songName = (TextView) findViewById(R.id.songName);
+        artistName = (TextView) findViewById(R.id.artistName);
+        albumArt = (ImageView) findViewById(R.id.albumImage);
+        totalTime = (TextView)findViewById(R.id.totalTime);
+        currentTime = (TextView)findViewById(R.id.currentTime);
+        seekBar = (SeekBar)findViewById(R.id.seekBar);
+
+        currentPlayList = (ListView) findViewById(R.id.currentPlayList);
+        currentPlayList.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                if (bounded) {
+                    MainActivity.this.iCallService.playSelectedSong(position);
+                }
+                else{
+                    playCurrentPlayList(position);
+                }
+            }
+        });
+
+        this.adapter = new CurrentPlayListAdapter(getApplicationContext(),this.songs);
+        currentPlayList.setAdapter(adapter);
+
+        lyricView = (TextView) findViewById(R.id.lyricView);
+        lyricView.setVisibility(View.INVISIBLE);
+        lyricView.setMovementMethod(new ScrollingMovementMethod());
+        lyricButton = (Button)findViewById(R.id.lyricButton);
+        saveButton = (ImageButton)findViewById(R.id.saveButton);
+
+        saveButton.setOnClickListener(this.savePlaylist);
+
+        this.hiddenItems = new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                MainActivity.this.searchLyric();
+            }
+        };
+        lyricButton.setOnClickListener(this.hiddenItems);
+        this.restoreItems = new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                MainActivity.this.setItemsStatus(View.VISIBLE);
+                MainActivity.this.lyricView.setVisibility(View.INVISIBLE);
+                saveButton.setOnClickListener(savePlaylist);
+                MainActivity.this.lyricButton.setText(R.string.lyricButton);
+                MainActivity.this.lyricButton.setOnClickListener(MainActivity.this.hiddenItems);
+            }
+        };
+    }
+
+    @Override
+    public void onActivityResult(int requestCode,
+                                 int resultCode,
+                                 Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+
+        if(requestCode == CODIGO_LibraryActivity) {
+            if (resultCode == Activity.RESULT_OK) {
+                Intent newIntent = new Intent(this,MusicService.class);
+                Bundle newBundle = data.getExtras();
+                Log.i("Code-MainActivity", newBundle.getString(Codes.TAG_TYPE));
+                newIntent.putExtras(newBundle);
+                startService(newIntent);
+                bindService(newIntent,sc,0);
+            }
+        }
+    }
+
+    @Override
+    protected void onStart() {
+        Log.d("Lifecycle", "onStart");
+        super.onStart();
+
+        Log.d("Lifecycle", "OnStart - Bounded: " + bounded);
+    }
+
+    @Override
+    protected void onResume() {
+        Log.d("Lifecycle", "onResume - Bounded: " + bounded);
+        super.onResume();
+
+        registerReceiver(playingTrackReceiver, new IntentFilter(Codes.TAG_SEND_RESULT));
+
+        // Me bindeo al Service sólo si está corriendo:
+        Intent checkService = new Intent(this,MusicService.class);
+        bindService(checkService,sc,0);
+    }
+
+    @Override
+    protected void onRestart() {
+        Log.d("Lifecycle", "OnReStart - Bounded: " + bounded);
+        super.onRestart();
+    }
+
+    @Override
+    protected void onStop() {
+        Log.d("Lifecycle", "OnStop - Bounded: " + bounded);
+        super.onStop();
+    }
+
+    @Override
+    protected void onPause() {
+        Log.d("Lifecycle", "OnPause - Bounded: " + bounded);
+
+        if(bounded) {
+            unbindService(sc);
+        }
+        unregisterReceiver(playingTrackReceiver);
+        super.onPause();
+    }
+
+    @Override
+    protected void onDestroy() {
+        Log.d("Lifecycle", "OnDestroy - Bounded: " + bounded);
+
+        super.onDestroy();
+    }
+
+    private BroadcastReceiver playingTrackReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            playingTrack = intent.getExtras().getParcelable(Codes.TAG_SONG);
+            ArrayList<Song> currentPlayList = intent.getParcelableArrayListExtra(Codes.TAG_PLAYLIST);
+
+            Log.d("LISTA RECIBIDA",currentPlayList.toString());
+            songs.clear();
+            songs.addAll(currentPlayList);
+            adapter.notifyDataSetChanged();
+
+            Log.d("CANCION RECIBIDA",playingTrack.toString());
+            songName.setText(playingTrack.getSongName());
+            Uri albumArtUri = null;
+            if (playingTrack.getAlbumArt() != null) {
+                albumArtUri = Uri.parse(playingTrack.getAlbumArt());
+            } else {
+                albumArtUri = Uri.parse(MainActivity.getAlbumArt(getApplicationContext(), playingTrack.getAlbumName()));
+            }
+
+            for (Song s:currentPlayList) {
+                s.setAlbumArt(MainActivity.getAlbumArt(getApplicationContext(), s.getAlbumName()));
+            }
+            albumArt.setImageURI(albumArtUri);
+            artistName.setText(playingTrack.getArtistName());
+            duration = (int) (long) playingTrack.getDuration();
+            if (iCallService != null){
+                if (iCallService.isPlaying()) {
+                    if (!(iCallService.isPaused())) {
+                        playPause.setImageResource(R.drawable.ic_action_playback_pause);
+                    }
+                }
+            }
+            updateTime(duration, totalTime);
+            setSeekBar(duration);
+        }
+    };
+
+
+    private void setSeekBar(int totalTime) {
+        this.seekBar.setMax(totalTime);
+        this.seekBar.setProgress(0);
+        final Handler mHandler = new Handler();
+        MainActivity.this.runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                if (MainActivity.this.iCallService != null) {
+                    int currentPosition = MainActivity.this.iCallService.getCurrentPosition();
+                    seekBar.setProgress(currentPosition);
+                    mHandler.postDelayed(this, 1000);
+                }
+            }
+        });
+        this.seekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            @Override
+            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+                if (fromUser) {
+                    if (MainActivity.this.iCallService != null) {
+                        MainActivity.this.iCallService.seekTo(progress);
+                    }
+                }
+                updateTime(progress, currentTime);
+            }
+
+            @Override
+            public void onStartTrackingTouch(SeekBar seekBar) {
+
+            }
+
+            @Override
+            public void onStopTrackingTouch(SeekBar seekBar) {
+
+            }
+        });
+    }
+
+    private void updateTime(int pos_actual, TextView text){
+        String secondsString, minutesString;
+        int minutes = pos_actual / (60 * 1000);
+        int seconds = (pos_actual / 1000) % 60;
+
+        if(seconds < 10){
+            secondsString = "0" + seconds;
+        }else{
+            secondsString = "" + seconds;
+        }
+        if(minutes < 10){
+            minutesString = "0" + minutes;
+        }else{
+            minutesString = "" + minutes;
+        }
+        text.setText(minutesString + ":" + secondsString);
+    }
+
+    private void playCurrentPlayList(int position){
+
+        Intent newIntent = new Intent(this,MusicService.class);
+        newIntent.putExtra(Codes.TAG_TYPE,Codes.TAG_CURRENT_PLAYLIST);
+        newIntent.putExtra(Codes.TAG_PLAYLIST,songs);
+        newIntent.putExtra(Codes.TAG_POSITION,position);
+        startService(newIntent);
+        bindService(newIntent,sc,0);
+    }
+
+    private void stop() {
+
+        Intent service = new Intent(this,MusicService.class);
+        updateTime(0,totalTime);
+        setSeekBar(0);
+        playPause.setImageResource(R.drawable.ic_play_arrow);
+
+        if (bounded) {
+            iCallService.stop();
+        }
+
+        stopService(service);
+    }
+
+    private void setItemsStatus(int visibility) {
+        this.playPause.setVisibility(visibility);
+        this.nextSong.setVisibility(visibility);
+        this.previousSong.setVisibility(visibility);
+        this.stop.setVisibility(visibility);
+        this.totalTime.setVisibility(visibility);
+        this.currentTime.setVisibility(visibility);
+        this.seekBar.setVisibility(visibility);
+        this.currentPlayList.setVisibility(visibility);
+    }
+
+    /** COMIENZA CODIGO BUSCAR LETRAS Y ALMECENAR PLAYLIST **/
+
     View.OnClickListener saveLyric = new View.OnClickListener() {
         @Override
         public void onClick(View v) {
             String fileName = MainActivity.this.songName.getText().toString().replace(" ","-") + ".txt" ;
-            //File file = new File(getApplicationContext().getFilesDir(), filename);
             File dir = new File(Environment.getExternalStorageDirectory().getAbsolutePath() + "/Text/" );
             if (!dir.exists())
             {
@@ -126,9 +494,7 @@ public class MainActivity extends AppCompatActivity {
                 FileOutputStream fOut = new FileOutputStream(file);
                 Log.d("File", "File created with name: " + fileName);
                 Log.d("File", "Writing file");
-                // myOutWriter.append(MainActivity.this.lyricView.getText().toString().getBytes());
-                    /*myOutWriter.write(MainActivity.this.lyricView.getText().toString());
-                    myOutWriter.close();*/
+
                 fOut.write(MainActivity.this.lyricView.getText().toString().getBytes());
                 fOut.close();
                 Log.d("File", "Closing file");
@@ -220,8 +586,6 @@ public class MainActivity extends AppCompatActivity {
                 };
                 Cursor c = getApplicationContext().getContentResolver().query(mUri, PROJECTION_PLAYLIST, null, null, null);
                 if (c != null) {
-                /* Save the newly created ID so it can be selected. Names are allowed to be duplicated,
-                 * but IDs can never be. */
                     c.moveToFirst();
                     mPlaylistId = "" + c.getLong(c.getColumnIndex(Audio.Playlists._ID));
                     c.close();
@@ -247,336 +611,6 @@ public class MainActivity extends AppCompatActivity {
             resolver.insert(uri, values);
         }
     };
-
-
-    private ServiceConnection sc = new ServiceConnection() {
-        @Override
-        public void onServiceConnected(ComponentName name, IBinder service) {
-            iCallService = (MusicService.MusicServiceBinder) service;
-            musicService = iCallService.getService();
-            bounded = true;
-            iCallService.getResult();
-        }
-        @Override
-        public void onServiceDisconnected(ComponentName name) {
-            iCallService = null;
-            musicService = null;
-            bounded = false;
-        }
-    };
-
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        Log.d("Lifecycle", "onCreate MainActivity Bounded: "+bounded);
-        super.onCreate(savedInstanceState);
-
-        setContentView(R.layout.activity_main);
-        if (checkPermission()) {
-            init();
-        } else {
-            requestPermission(); // Code for permission
-        }
-
-        //Chequeo si hay un Service corriendo y necesito bindearlo al iniciar de nuevo la App
-        Intent checkService = new Intent(this,MusicService.class);
-        bindService(checkService,sc,0);
-    }
-
-    private void init(){
-        ImageButton libraryButton = (ImageButton) findViewById(R.id.libraryButton);
-
-        libraryButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Intent libraryView = new Intent(MainActivity.this, LibraryActivity.class);
-                startActivityForResult(libraryView, CODIGO_LibraryActivity);
-            }
-        });
-        playPause = (ImageButton)findViewById(R.id.playButton);
-        nextSong = (ImageButton)findViewById(R.id.nextSongButton);
-        previousSong = (ImageButton)findViewById(R.id.previousSongButton);
-        stop = (ImageButton) findViewById(R.id.stopButton);
-        playPause.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if (MainActivity.this.iCallService != null) {
-                    if (MainActivity.this.iCallService.isPaused()) {
-                        MainActivity.this.iCallService.resume();
-                        playPause.setImageResource(R.drawable.ic_action_playback_pause);
-                    } else if (MainActivity.this.iCallService.isPlaying())  {
-                        MainActivity.this.iCallService.pause();
-                        playPause.setImageResource(R.drawable.ic_play_arrow);
-                    }
-                }
-            }
-        });
-        nextSong.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v)
-            {
-                if (MainActivity.this.iCallService != null) {
-                    MainActivity.this.iCallService.nextSong();
-                }
-            }
-        });
-        previousSong.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v)
-            {
-                if (MainActivity.this.iCallService != null) {
-                    MainActivity.this.iCallService.previousSong();
-                }
-            }
-        });
-        stop.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                stop();
-            }
-        });
-
-        songName = (TextView) findViewById(R.id.songName);
-        artistName = (TextView) findViewById(R.id.artistName);
-        albumArt = (ImageView) findViewById(R.id.albumImage);
-        totalTime = (TextView)findViewById(R.id.totalTime);
-        currentTime = (TextView)findViewById(R.id.currentTime);
-        seekBar = (SeekBar)findViewById(R.id.seekBar);
-
-        currentPlayList = (ListView) findViewById(R.id.currentPlayList);
-        currentPlayList.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-            @Override
-            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                if (bounded) {
-                    MainActivity.this.iCallService.playSelectedSong(position);
-                }
-                else{
-                    playCurrentPlayList(position);
-                }
-            }
-        });
-
-        this.adapter = new CurrentPlayListAdapter(getApplicationContext(),this.songs);
-        currentPlayList.setAdapter(adapter);
-
-        lyricView = (TextView) findViewById(R.id.lyricView);
-        lyricView.setVisibility(View.INVISIBLE);
-        lyricView.setMovementMethod(new ScrollingMovementMethod());
-        lyricButton = (Button)findViewById(R.id.lyricButton);
-        saveButton = (ImageButton)findViewById(R.id.saveButton);
-
-        //saveButton.setVisibility(View.INVISIBLE); //buscar en el codigo cuando se hace visible y poner el saveLyric
-
-        saveButton.setOnClickListener(this.savePlaylist);
-
-        //saveButton.setOnClickListener(saveLyric);
-
-        this.hiddenItems = new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                MainActivity.this.searchLyric();
-            }
-        };
-        lyricButton.setOnClickListener(this.hiddenItems);
-        this.restoreItems = new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                MainActivity.this.setItemsStatus(View.VISIBLE);
-                MainActivity.this.lyricView.setVisibility(View.INVISIBLE);
-               // MainActivity.this.saveButton.setVisibility(View.INVISIBLE);
-                saveButton.setOnClickListener(savePlaylist);
-                MainActivity.this.lyricButton.setText(R.string.lyricButton);
-                MainActivity.this.lyricButton.setOnClickListener(MainActivity.this.hiddenItems);
-            }
-        };
-    }
-
-    private void playCurrentPlayList(int position){
-
-        Intent newIntent = new Intent(this,MusicService.class);
-        newIntent.putExtra(Codes.TAG_TYPE,Codes.TAG_CURRENT_PLAYLIST);
-        newIntent.putExtra(Codes.TAG_PLAYLIST,songs);
-        newIntent.putExtra(Codes.TAG_POSITION,position);
-        startService(newIntent);
-        bindService(newIntent,sc,0);
-    }
-
-    private void stop() {
-
-        Intent service = new Intent(this,MusicService.class);
-        updateTime(0,totalTime);
-        setSeekBar(0);
-        playPause.setImageResource(R.drawable.ic_play_arrow);
-
-        if (bounded) {
-            iCallService.stop();
-        }
-
-        stopService(service);
-    }
-
-
-    private void setSeekBar(int totalTime) {
-        this.seekBar.setMax(totalTime);
-        this.seekBar.setProgress(0);
-        final Handler mHandler = new Handler();
-        MainActivity.this.runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                if (MainActivity.this.iCallService != null) {
-                    int currentPosition = MainActivity.this.iCallService.getCurrentPosition();
-                    seekBar.setProgress(currentPosition);
-                    mHandler.postDelayed(this, 1000);
-                }
-            }
-        });
-        this.seekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
-            @Override
-            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
-                if (fromUser) {
-                    if (MainActivity.this.iCallService != null) {
-                        MainActivity.this.iCallService.seekTo(progress);
-                    }
-                }
-                updateTime(progress, currentTime);
-            }
-
-            @Override
-            public void onStartTrackingTouch(SeekBar seekBar) {
-
-            }
-
-            @Override
-            public void onStopTrackingTouch(SeekBar seekBar) {
-
-            }
-        });
-    }
-
-    private void updateTime(int pos_actual, TextView text){
-        String secondsString, minutesString;
-        int minutes = pos_actual / (60 * 1000);
-        int seconds = (pos_actual / 1000) % 60;
-
-        if(seconds < 10){
-            secondsString = "0" + seconds;
-        }else{
-            secondsString = "" + seconds;
-        }
-        if(minutes < 10){
-            minutesString = "0" + minutes;
-        }else{
-            minutesString = "" + minutes;
-        }
-        text.setText(minutesString + ":" + secondsString);
-    }
-
-
-    @Override
-    public void onActivityResult(int requestCode,
-                                 int resultCode,
-                                 Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
-
-        if(requestCode == CODIGO_LibraryActivity) {
-                if (resultCode == Activity.RESULT_OK) {
-                    Intent newIntent = new Intent(this,MusicService.class);
-                    Bundle newBundle = data.getExtras();
-                    Log.i("Code-MainActivity", newBundle.getString(Codes.TAG_TYPE));
-                    newIntent.putExtras(newBundle);
-                    startService(newIntent);
-                    bindService(newIntent,sc,0);
-                }
-        }
-    }
-
-    @Override
-    protected void onStart() {
-        Log.d("Lifecycle", "onStart");
-        super.onStart();
-
-        Log.d("Lifecycle", "OnStart - Bounded: " + bounded);
-    }
-
-    @Override
-    protected void onResume() {
-        Log.d("Lifecycle", "onResume - Bounded: " + bounded);
-        super.onResume();
-
-        registerReceiver(playingTrackReceiver, new IntentFilter(Codes.TAG_SEND_RESULT));
-
-        // Me bindeo al Service sólo si está corriendo:
-        Intent checkService = new Intent(this,MusicService.class);
-        bindService(checkService,sc,0);
-    }
-
-    private BroadcastReceiver playingTrackReceiver = new BroadcastReceiver() {
-        @Override
-        public void onReceive(Context context, Intent intent) {
-            playingTrack = intent.getExtras().getParcelable(Codes.TAG_SONG);
-            ArrayList<Song> currentPlayList = intent.getParcelableArrayListExtra(Codes.TAG_PLAYLIST);
-
-            Log.d("LISTA RECIBIDA",currentPlayList.toString());
-            songs.clear();
-            songs.addAll(currentPlayList);
-            adapter.notifyDataSetChanged();
-
-            Log.d("CANCION RECIBIDA",playingTrack.toString());
-            songName.setText(playingTrack.getSongName());
-            Uri albumArtUri = null;
-            if (playingTrack.getAlbumArt() != null) {
-                albumArtUri = Uri.parse(playingTrack.getAlbumArt());
-            } else {
-                albumArtUri = Uri.parse(MainActivity.getAlbumArt(getApplicationContext(), playingTrack.getAlbumName()));
-            }
-
-            for (Song s:currentPlayList) {
-                s.setAlbumArt(MainActivity.getAlbumArt(getApplicationContext(), s.getAlbumName()));
-            }
-            albumArt.setImageURI(albumArtUri);
-            artistName.setText(playingTrack.getArtistName());
-            duration = (int) (long) playingTrack.getDuration();
-            if (iCallService != null){
-                if (iCallService.isPlaying()) {
-                    if (!(iCallService.isPaused())) {
-                        playPause.setImageResource(R.drawable.ic_action_playback_pause);
-                    }
-                }
-            }
-            updateTime(duration, totalTime);
-            setSeekBar(duration);
-        }
-        };
-
-
-    @Override
-    protected void onRestart() {
-        Log.d("Lifecycle", "OnReStart - Bounded: " + bounded);
-        super.onRestart();
-    }
-
-    @Override
-    protected void onStop() {
-        Log.d("Lifecycle", "OnStop - Bounded: " + bounded);
-        super.onStop();
-    }
-
-    @Override
-    protected void onPause() {
-        Log.d("Lifecycle", "OnPause - Bounded: " + bounded);
-
-        if(bounded) {
-            unbindService(sc);
-        }
-        unregisterReceiver(playingTrackReceiver);
-        super.onPause();
-    }
-
-    @Override
-    protected void onDestroy() {
-        Log.d("Lifecycle", "OnDestroy - Bounded: " + bounded);
-
-        super.onDestroy();
-    }
 
     private static String getAlbumArt(Context c, String selection){ //from albumName
         Cursor cursor = c.getContentResolver().query(
@@ -605,7 +639,6 @@ public class MainActivity extends AppCompatActivity {
         if(this.iCallService != null && this.iCallService.isPlaying()){
             this.setItemsStatus(View.INVISIBLE);
             this.lyricView.setVisibility(View.VISIBLE);
-            //this.saveButton.setVisibility(View.VISIBLE);
             this.saveButton.setOnClickListener(saveLyric);
             this.lyricButton.setText(R.string.backButton);
             this.lyricButton.setOnClickListener(this.restoreItems);
@@ -660,50 +693,6 @@ public class MainActivity extends AppCompatActivity {
         catch (JSONException e) {
             return getApplicationContext().getString(R.string.lyricNotFound);
         }
-    }
-
-    private boolean checkPermission() {
-        int result = ContextCompat.checkSelfPermission(MainActivity.this, INTERNET);
-        int result2 = ContextCompat.checkSelfPermission(MainActivity.this, WRITE_EXTERNAL_STORAGE);
-        if (result == PackageManager.PERMISSION_GRANTED && result2 == PackageManager.PERMISSION_GRANTED) {
-            return true;
-        } else {
-            return false;
-        }
-    }
-
-    private void requestPermission() {
-        if (ActivityCompat.shouldShowRequestPermissionRationale(MainActivity.this, INTERNET)) {
-            Toast.makeText(MainActivity.this, "Usar internet permite obtener letras de las canciones. Por favor conceda este permiso en los ajustes.", Toast.LENGTH_LONG).show();
-        } else if (ActivityCompat.shouldShowRequestPermissionRationale(MainActivity.this, WRITE_EXTERNAL_STORAGE)) {
-            Toast.makeText(MainActivity.this, "Usar la escritura permite guardar letras de las canciones. Por favor conceda este permiso en los ajustes.", Toast.LENGTH_LONG).show();
-        } else {
-            ActivityCompat.requestPermissions(MainActivity.this, new String[]{INTERNET, WRITE_EXTERNAL_STORAGE}, PERMISSION_REQUEST_CODE);
-        }
-    }
-
-    @Override
-    public void onRequestPermissionsResult(int requestCode, String permissions[], int[] grantResults) {
-        switch (requestCode) {
-            case PERMISSION_REQUEST_CODE:
-                if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                    Log.e("value", "Permission Granted.");
-                    init();
-                } else {
-                    Log.e("value", "Permission Denied.");
-                }
-                break;
-        }
-    }
-
-    private void setItemsStatus(int visibility) {
-        this.playPause.setVisibility(visibility);
-        this.nextSong.setVisibility(visibility);
-        this.previousSong.setVisibility(visibility);
-        this.totalTime.setVisibility(visibility);
-        this.currentTime.setVisibility(visibility);
-        this.seekBar.setVisibility(visibility);;
-        this.currentPlayList.setVisibility(visibility);
     }
 
 }
